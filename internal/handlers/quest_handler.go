@@ -37,7 +37,7 @@ func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
 
 	questDetails, err := h.questService.GetQuestDetails(c.Request.Context(), questID, userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Quest not found"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

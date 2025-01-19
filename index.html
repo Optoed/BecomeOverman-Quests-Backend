@@ -2209,7 +2209,7 @@
             <div class="card">
                 <h4>${quest.title || 'Без названия'}</h4>
                 <p>${quest.description || 'Описание отсутствует'}</p>
-                <p><strong>Прогресс:</strong> ${quest.tasks_done || 0}/${quest.tasks_count || 0} задач выполнено</p>
+                <p><strong>Прогресс:</strong> сколько-то /${quest.tasks_count || 0} задач выполнено</p>
                 ${quest.status === 'started' ?
                         `<button class="btn btn-info" onclick="showQuestTasks(${quest.id}, '${quest.title}')">Показать задачи</button>` :
                         `<button class="btn btn-success" onclick="startQuest(${quest.id}, '${quest.title}')">Начать</button>`
@@ -2238,39 +2238,35 @@
         async function showQuestTasks(questId, questTitle) {
             currentActiveQuestId = questId;
 
-            // Получаем детали квеста с задачами
             const result = await apiCall(`/quests/${questId}/details`);
 
             if (result.success && result.data) {
                 const quest = result.data;
-
-                // Обновляем заголовок
                 document.getElementById('active-quest-title').textContent = questTitle;
 
-                // Создаем список задач
                 let tasksHTML = '';
                 if (quest.tasks && Array.isArray(quest.tasks)) {
-                    tasksHTML = quest.tasks.map(task => `
-                <div class="task-item" id="task-${task.id}">
-                    <input type="checkbox" class="task-checkbox" id="checkbox-${task.id}" 
-                           onchange="completeTask(${questId}, ${task.id}, this)">
-                    <div class="task-info">
-                        <div class="task-title">${task.task_order}. ${task.title}</div>
-                        <div class="task-description">${task.description}</div>
-                        <div class="task-reward">Награда: ${task.base_xp_reward} XP, ${task.base_coin_reward} монет</div>
-                    </div>
-                </div>
-            `).join('');
+                    tasksHTML = quest.tasks.map(task => {
+                        const completed = task.status === 'completed'; // <- проверка статуса задачи
+                        return `
+                            <div class="task-item ${completed ? 'task-completed' : ''}" id="task-${task.id}">
+                                <input type="checkbox" class="task-checkbox" id="checkbox-${task.id}" 
+                                       onchange="completeTask(${questId}, ${task.id}, this)"
+                                       ${completed ? 'checked disabled' : ''}>
+                                <div class="task-info">
+                                    <div class="task-title">${task.task_order}. ${task.title}</div>
+                                    <div class="task-description">${task.description}</div>
+                                    <div class="task-reward">Награда: ${task.base_xp_reward} XP, ${task.base_coin_reward} монет</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 } else {
                     tasksHTML = '<p>Задачи не найдены</p>';
                 }
 
                 document.getElementById('tasks-list').innerHTML = tasksHTML;
-
-                // Показываем блок с задачами
                 document.getElementById('active-quest-tasks').style.display = 'block';
-
-                // Прокручиваем к задачам
                 document.getElementById('active-quest-tasks').scrollIntoView({ behavior: 'smooth' });
 
             } else {
