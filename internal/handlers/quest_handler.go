@@ -44,6 +44,26 @@ func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, questDetails)
 }
 
+// ------------ GetMyAllQuestsWithDetails ---------------
+
+func (h *QuestHandler) GetMyAllQuestsWithDetails(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	quests, err := h.questService.GetMyAllQuestsWithDetails(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, quests)
+}
+
+// ------------ GetAvailableQuestsHandler ---------
+
 func (h *QuestHandler) GetAvailableQuestsHandler(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -59,6 +79,10 @@ func (h *QuestHandler) GetAvailableQuestsHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, quests)
 }
+
+// <--------------------------------------------->
+// ------------ GetQuestShopHandler --------------
+// <--------------------------------------------->
 
 func (h *QuestHandler) GetQuestShopHandler(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
@@ -226,6 +250,7 @@ func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService
 	questGroup.Use(middleware.JWTAuthMiddleware())
 	{
 		questGroup.GET("/:questID/details", handler.GetQuestDetails)
+		questGroup.GET("/my-quests-with-details", handler.GetMyAllQuestsWithDetails)
 		questGroup.GET("/available", handler.GetAvailableQuestsHandler)
 		questGroup.GET("/shop", handler.GetQuestShopHandler)
 		questGroup.GET("/active", handler.GetMyActiveQuestsHandler)
@@ -238,5 +263,6 @@ func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService
 		questGroup.POST("/shared", handler.CreateSharedQuest)
 
 		questGroup.POST("/generate", handler.GenerateAIQuest)
+		questGroup.POST("/schedule", handler.GenerateScheduleByAI)
 	}
 }
