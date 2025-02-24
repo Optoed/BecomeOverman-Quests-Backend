@@ -1,6 +1,7 @@
 package services
 
 import (
+	"BecomeOverMan/internal/config"
 	"BecomeOverMan/internal/models"
 	"bytes"
 	"context"
@@ -8,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -17,7 +17,7 @@ const (
 	url = "https://api.intelligence.io.solutions/api/v1/chat/completions"
 )
 
-var apiKey = os.Getenv("API_KEY")
+var apiKey = config.Cfg.APIKeyIntelligenceIO
 
 type ChatMessage struct {
 	Role    string `json:"role"`
@@ -257,6 +257,12 @@ func (s *QuestService) GenerateScheduleByAI(
 	- распределяй задачи равномерно
 	- учитывай taskOrder - задача с меньшим taskOrder должна быть раньше выполнена
 	`
+
+	currentDate := time.Now()
+
+	userMessageWithInfo += fmt.Sprintf(`
+		- Текущая дата: "%s"
+	`, currentDate.Format(time.RFC3339))
 
 	aiModel := "moonshotai/Kimi-K2-Thinking"
 
