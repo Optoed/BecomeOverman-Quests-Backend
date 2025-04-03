@@ -86,6 +86,27 @@ func (h *UserHandler) AddFriend(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Friend added successfully"})
 }
 
+func (h *UserHandler) AddFriendByName(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	friendName := c.Param("friend_name")
+	if friendName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing friend name"})
+		return
+	}
+
+	if err := h.service.AddFriendByName(userID, friendName); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Friend added successfully"})
+}
+
 func (h *UserHandler) GetFriends(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -138,6 +159,7 @@ func RegisterUserRoutes(router *gin.Engine, userService *services.UserService) {
 	friendGroup.Use(middleware.JWTAuthMiddleware())
 	{
 		friendGroup.POST("/:friend_id", handler.AddFriend)
+		friendGroup.POST("/by-name/:friend_name", handler.AddFriendByName)
 		friendGroup.GET("", handler.GetFriends)
 	}
 }
