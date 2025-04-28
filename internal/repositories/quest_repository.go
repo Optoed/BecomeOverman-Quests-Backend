@@ -3,11 +3,13 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"BecomeOverMan/internal/models"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type QuestRepository struct {
@@ -120,21 +122,8 @@ func (r *QuestRepository) SetOrUpdateScheduleTasks(ctx context.Context, userID i
 	return tx.Commit()
 }
 
-// GetQuestDetails возвращает детали квеста со всеми задачами.
-// Если userID != nil, возвращает доп. информацию о статусе, дедлайнах и наградах пользователя.
-func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID int, userID int) (*models.Quest, error) {
-	// Получаем основную информацию о квесте
-	var quest models.Quest
-	err := r.db.GetContext(ctx, &quest, `
-        SELECT * FROM quests WHERE id = $1
-    `, questID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Получаем все задачи этого квеста
-	var tasks []models.Task
-	err = r.db.SelectContext(ctx, &tasks, `
+const (
+	queryGetQuestDetails = `
 		SELECT 
 			t.*,
 			qt.task_order,
@@ -154,8 +143,24 @@ func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID int, user
 			ON t.id = ut.task_id AND ut.user_id = $2
 		WHERE qt.quest_id = $1
 		ORDER BY qt.task_order ASC
-		`, questID, userID)
+	`
+)
 
+// GetQuestDetails возвращает детали квеста со всеми задачами.
+// Если userID существует ??, возвращает доп. информацию о статусе, дедлайнах и наградах пользователя.
+func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID int, userID int) (*models.Quest, error) {
+	// Получаем основную информацию о квесте
+	var quest models.Quest
+	err := r.db.GetContext(ctx, &quest, `
+        SELECT * FROM quests WHERE id = $1
+    `, questID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Получаем все задачи этого квеста
+	var tasks []models.Task
+	err = r.db.SelectContext(ctx, &tasks, queryGetQuestDetails, questID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -178,28 +183,49 @@ func (r *QuestRepository) GetMyAllQuestsWithDetails(ctx context.Context, userID 
 
 	for i := range quests {
 		var tasks []models.Task
+		err = r.db.SelectContext(ctx, &tasks, queryGetQuestDetails, quests[i].ID, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		quests[i].Tasks = tasks
+	}
+
+	return quests, nil
+}
+
+// Для Search (Recommendation Service)
+// сделать версии для своих квестов, для магазина, для доступных к покупке
+func (r *QuestRepository) SearchQuestsWithDetailsByIDs(ctx context.Context, ids []int) ([]models.Quest, error) {
+	if len(ids) == 0 {
+		return []models.Quest{}, nil
+	}
+
+	query := `
+		SELECT * FROM quests
+		WHERE id = ANY($1)
+		ORDER BY array_position($1, id)
+	` // ORDER BY array_position($1, id) нужен чтобы вернулось в порядке релевантности
+
+	var quests []models.Quest
+
+	err := r.db.SelectContext(ctx, &quests, query, pq.Array(ids))
+	if err != nil {
+		return nil, fmt.Errorf("ошибка получения квестов из БД с указанными ids: %w", err)
+	}
+
+	for i := range quests {
+		var tasks []models.Task
 
 		err = r.db.SelectContext(ctx, &tasks, `
 			SELECT 
 				t.*,
-				qt.task_order,
-				ut.status,
-				ut.scheduled_start,
-				ut.scheduled_end,
-				ut.deadline,
-				ut.duration,
-				ut.updated_by_ai,
-				ut.is_confirmed,
-				ut.completed_at,
-				ut.xp_gained,
-				ut.coin_gained
+				qt.task_order
 			FROM tasks t
 			INNER JOIN quest_tasks qt ON t.id = qt.task_id
-			LEFT JOIN user_tasks ut 
-				ON t.id = ut.task_id AND ut.user_id = $2
 			WHERE qt.quest_id = $1
 			ORDER BY qt.task_order ASC
-			`, quests[i].ID, userID)
+			`, quests[i].ID)
 		if err != nil {
 			return nil, err
 		}
