@@ -34,7 +34,7 @@ func main() {
 	userService := services.NewUserService(userRepo)
 
 	questRepo := repositories.NewQuestRepository(db)
-	questService := services.NewQuestService(questRepo)
+	questService := services.NewQuestService(questRepo, userRepo)
 
 	r := gin.Default()
 	// Настройка CORS
