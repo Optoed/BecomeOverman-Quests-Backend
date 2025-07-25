@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,7 +43,7 @@ func (h *QuestHandler) GenerateAIQuest(c *gin.Context) {
 	req := models.RecommendationService_AddQuests_Request{
 		Quests: []models.RecommendationService_questToAdd{
 			{
-				ID:          strconv.Itoa(questID),
+				ID:          questID,
 				Title:       aiResponse.Quest.Title,
 				Description: aiResponse.Quest.Description,
 				Category:    aiResponse.Quest.Category,

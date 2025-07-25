@@ -292,3 +292,56 @@ func (s *QuestService) RecommendFriends(
 
 	return recommendedProfilesAndSimilarityResponse, nil
 }
+
+// quests/recommend
+func (s *QuestService) RecommendQuests(ctx context.Context, userID int) (*models.RecommendationService_RecommendQuests_Resp, error) {
+	questIDS, err := s.questRepo.GetUserQuestIDs(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user quest ids (while recommend quests): %w", err)
+	}
+
+	if len(questIDS) == 0 {
+		return &models.RecommendationService_RecommendQuests_Resp{}, nil
+	}
+
+	req := models.RecommendationService_RecommendQuests_Req{
+		UserQuestIDs: questIDS,
+	}
+
+	return s.recommendQuests(ctx, req)
+}
+
+func (s *QuestService) recommendQuests(ctx context.Context, req models.RecommendationService_RecommendQuests_Req) (*models.RecommendationService_RecommendQuests_Resp, error) {
+	// 1. Создаем URL
+	url := integrations.Recommendation_Service_BASE_URL + "/quests/recommend"
+
+	// 2. Кодируем в JSON
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Создаем io.Reader из JSON
+	body := bytes.NewBuffer(jsonData)
+
+	// 4. Делаем POST запрос
+	resp, err := http.Post(url, "application/json", body)
+	if err != nil {
+		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	// 5. Проверяем статус
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("recommendation service returned status %d", resp.StatusCode)
+	}
+
+	// 6. Читаем и парсим ответ
+	var response models.RecommendationService_RecommendQuests_Resp
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &response, nil
+}

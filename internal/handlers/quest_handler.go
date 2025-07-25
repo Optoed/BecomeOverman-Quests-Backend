@@ -277,6 +277,23 @@ func (h *QuestHandler) RecommendFriends(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// Рекомендация квестов с помощью Recommendation Service
+func (h *QuestHandler) RecommendQuests(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.questService.RecommendQuests(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 // RegisterQuestRoutes sets up the routes for quest handling with Gin
 func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService) {
 	handler := NewQuestHandler(questService)
@@ -304,5 +321,6 @@ func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService
 		questGroup.POST("/schedule", handler.GenerateScheduleByAI)
 
 		questGroup.POST("/recommend/friends", handler.RecommendFriends)
+		questGroup.POST("/recommend", handler.RecommendQuests)
 	}
 }
