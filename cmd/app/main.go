@@ -2,11 +2,10 @@ package main
 
 import (
 	"BecomeOverMan/internal/handlers"
-	"errors"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"log"
 	"os"
+
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -31,27 +30,30 @@ func main() {
 	}
 	defer db.Close()
 
-	// Настройка миграций
-	m, err := migrate.New(
-		"file://migrations", // Путь к папке с миграциями
-		os.Getenv("DATABASE_URL"),
-	)
-	if err != nil {
-		log.Fatal("Error initializing migration:", err)
-	}
+	/*
+		// Настройка миграций
+		m, err := migrate.New(
+			"file://migrations", // Путь к папке с миграциями
+			os.Getenv("DATABASE_URL"),
+		)
+		if err != nil {
+			log.Fatal("Error initializing migration:", err)
+		}
 
-	// Применение миграций
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal("Failed to apply migrations:", err)
-	}
-
-	userRepo := repositories.NewUserRepository(db)
-	userService := services.NewUserService(userRepo)
-	userHandler := handlers.NewUserHandler(userService)
-
+		// Применение миграций
+		if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			log.Fatal("Failed to apply migrations:", err)
+		}
+	*/
 	baseRepo := repositories.NewBaseRepository(db)
 	baseService := services.NewBaseService(baseRepo)
 	baseHandler := handlers.NewBaseHandler(baseService)
+
+	userRepo := repositories.NewUserRepository(db)
+	userService := services.NewUserService(userRepo)
+
+	questRepo := repositories.NewQuestRepository(db)
+	questService := services.NewQuestService(questRepo)
 
 	r := gin.Default()
 
@@ -59,8 +61,8 @@ func main() {
 	{
 		api.GET("/ping", baseHandler.CheckConnection)
 
-		api.POST("/register", userHandler.Register)
-		api.POST("/login", userHandler.Login)
+		handlers.RegisterUserRoutes(api, userService)
+		handlers.RegisterQuestRoutes(api, questService)
 	}
 
 	if err := r.Run(":8080"); err != nil {

@@ -3,8 +3,9 @@ package handlers
 import (
 	"BecomeOverMan/internal/models"
 	"BecomeOverMan/internal/services"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
@@ -43,4 +44,15 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"message": "Login successful",
 		"user_id": userID,
 	})
+}
+
+// RegisterQuestRoutes sets up the routes for quest handling with Gin
+func RegisterUserRoutes(router *gin.RouterGroup, userService *services.UserService) {
+	handler := NewUserHandler(userService)
+
+	userGroup := router.Group("/user")
+	{
+		userGroup.POST("/login", handler.Login)
+		userGroup.POST("/register", handler.Register)
+	}
 }
