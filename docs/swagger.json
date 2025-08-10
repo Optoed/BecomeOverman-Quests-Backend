@@ -25,15 +25,6 @@
                     "Quests"
                 ],
                 "summary": "Get available quests for user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -84,13 +75,6 @@
                 ],
                 "summary": "Complete a quest",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "Quest ID",
@@ -145,13 +129,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
                         "description": "Quest ID",
                         "name": "questID",
                         "in": "path",
@@ -204,13 +181,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
                         "description": "Quest ID",
                         "name": "questID",
                         "in": "path",
@@ -261,13 +231,6 @@
                 ],
                 "summary": "Complete a quest task",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "Quest ID",
@@ -328,7 +291,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.LoginRequest"
                         }
                     }
                 ],
@@ -383,7 +346,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.RegisterRequest"
                         }
                     }
                 ],
@@ -420,6 +383,25 @@
         }
     },
     "definitions": {
+        "models.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
+                }
+            }
+        },
         "models.Quest": {
             "type": "object",
             "properties": {
@@ -461,6 +443,29 @@
                 }
             }
         },
+        "models.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
+                }
+            }
+        },
         "models.Task": {
             "type": "object",
             "properties": {
@@ -491,59 +496,6 @@
                 },
                 "title": {
                     "type": "string"
-                }
-            }
-        },
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "charisma_level": {
-                    "type": "integer"
-                },
-                "coin_balance": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "current_streak": {
-                    "type": "integer"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "health_level": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "intelligence_level": {
-                    "type": "integer"
-                },
-                "is_premium": {
-                    "type": "boolean"
-                },
-                "last_active_at": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "longest_streak": {
-                    "type": "integer"
-                },
-                "password_hash": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "willpower_level": {
-                    "type": "integer"
-                },
-                "xp_points": {
-                    "type": "integer"
                 }
             }
         }

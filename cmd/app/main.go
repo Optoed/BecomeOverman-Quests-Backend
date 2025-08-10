@@ -4,7 +4,7 @@
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-// @BasePath /api
+// @BasePath /
 package main
 
 import (
@@ -14,6 +14,7 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -68,19 +69,19 @@ func main() {
 	questService := services.NewQuestService(questRepo)
 
 	r := gin.Default()
+	r.Use(cors.Default()) // Позволит все запросы из любых источников (для разработки)
 
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api := r.Group("/api")
 	{
-		api.GET("/ping", baseHandler.CheckConnection)
+		r.GET("/ping", baseHandler.CheckConnection)
 
-		handlers.RegisterUserRoutes(api, userService)
-		handlers.RegisterQuestRoutes(api, questService)
+		handlers.RegisterUserRoutes(r, userService)
+		handlers.RegisterQuestRoutes(r, questService)
 	}
 
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run("0.0.0.0:8080"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

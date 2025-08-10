@@ -33,15 +33,6 @@ const docTemplate = `{
                     "Quests"
                 ],
                 "summary": "Get available quests for user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -92,13 +83,6 @@ const docTemplate = `{
                 ],
                 "summary": "Complete a quest",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "Quest ID",
@@ -153,13 +137,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
                         "description": "Quest ID",
                         "name": "questID",
                         "in": "path",
@@ -212,13 +189,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
                         "description": "Quest ID",
                         "name": "questID",
                         "in": "path",
@@ -269,13 +239,6 @@ const docTemplate = `{
                 ],
                 "summary": "Complete a quest task",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "X-User-ID",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "Quest ID",
@@ -336,7 +299,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.LoginRequest"
                         }
                     }
                 ],
@@ -391,7 +354,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.RegisterRequest"
                         }
                     }
                 ],
@@ -428,6 +391,25 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
+                }
+            }
+        },
         "models.Quest": {
             "type": "object",
             "properties": {
@@ -469,6 +451,29 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
+                }
+            }
+        },
         "models.Task": {
             "type": "object",
             "properties": {
@@ -499,59 +504,6 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
-                }
-            }
-        },
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "charisma_level": {
-                    "type": "integer"
-                },
-                "coin_balance": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "current_streak": {
-                    "type": "integer"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "health_level": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "intelligence_level": {
-                    "type": "integer"
-                },
-                "is_premium": {
-                    "type": "boolean"
-                },
-                "last_active_at": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "longest_streak": {
-                    "type": "integer"
-                },
-                "password_hash": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "willpower_level": {
-                    "type": "integer"
-                },
-                "xp_points": {
-                    "type": "integer"
                 }
             }
         }

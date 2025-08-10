@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"BecomeOverMan/internal/services"
+	"BecomeOverMan/pkg/middleware"
 	"net/http"
 	"strconv"
 
@@ -16,6 +17,8 @@ func NewQuestHandler(questService *services.QuestService) *QuestHandler {
 	return &QuestHandler{questService: questService}
 }
 
+// ==== Handlers ====
+
 // GetAvailableQuestsHandler handles the GET request for available quests
 // @Summary Get available quests for user
 // @Description Returns quests available for the current user based on their level and coin balance
@@ -23,15 +26,14 @@ func NewQuestHandler(questService *services.QuestService) *QuestHandler {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param X-User-ID header int true "User ID"
 // @Success 200 {array} models.Quest
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /quests/available [get]
 func (h *QuestHandler) GetAvailableQuestsHandler(c *gin.Context) {
-	userID, err := strconv.Atoi(c.GetHeader("X-User-ID"))
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -51,16 +53,15 @@ func (h *QuestHandler) GetAvailableQuestsHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param X-User-ID header int true "User ID"
 // @Param questID path int true "Quest ID"
 // @Success 200
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /quests/{questID}/purchase [post]
 func (h *QuestHandler) PurchaseQuestHandler(c *gin.Context) {
-	userID, err := strconv.Atoi(c.GetHeader("X-User-ID"))
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -85,16 +86,15 @@ func (h *QuestHandler) PurchaseQuestHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param X-User-ID header int true "User ID"
 // @Param questID path int true "Quest ID"
 // @Success 200
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /quests/{questID}/start [post]
 func (h *QuestHandler) StartQuestHandler(c *gin.Context) {
-	userID, err := strconv.Atoi(c.GetHeader("X-User-ID"))
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -119,7 +119,6 @@ func (h *QuestHandler) StartQuestHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param X-User-ID header int true "User ID"
 // @Param questID path int true "Quest ID"
 // @Param taskID path int true "Task ID"
 // @Success 200
@@ -127,9 +126,9 @@ func (h *QuestHandler) StartQuestHandler(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /quests/{questID}/{taskID}/complete [post]
 func (h *QuestHandler) CompleteTaskHandler(c *gin.Context) {
-	userID, err := strconv.Atoi(c.GetHeader("X-User-ID"))
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -160,17 +159,15 @@ func (h *QuestHandler) CompleteTaskHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param X-User-ID header int true "User ID"
 // @Param questID path int true "Quest ID"
 // @Success 200
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /quests/{questID}/complete [post]
 func (h *QuestHandler) CompleteQuestHandler(c *gin.Context) {
-	userID, err := strconv.Atoi(c.GetHeader("X-User-ID"))
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	questID, err := strconv.Atoi(c.Param("questID"))
@@ -188,11 +185,11 @@ func (h *QuestHandler) CompleteQuestHandler(c *gin.Context) {
 }
 
 // RegisterQuestRoutes sets up the routes for quest handling with Gin
-func RegisterQuestRoutes(router *gin.RouterGroup, questService *services.QuestService) {
+func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService) {
 	handler := NewQuestHandler(questService)
 
 	questGroup := router.Group("/quests")
-	// questGroup.Use(middleware.JWTAuthMiddleware())
+	questGroup.Use(middleware.JWTAuthMiddleware())
 	{
 		questGroup.GET("/available", handler.GetAvailableQuestsHandler)
 		questGroup.POST("/:questID/purchase", handler.PurchaseQuestHandler)

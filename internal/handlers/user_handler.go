@@ -24,18 +24,18 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User credentials"
+// @Param user body models.RegisterRequest true "User credentials"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /user/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req models.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
-	if err := h.service.Register(user.Username, user.Email, user.PasswordHash); err != nil {
+	if err := h.service.Register(req.Username, req.Email, req.Password); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
@@ -48,19 +48,19 @@ func (h *UserHandler) Register(c *gin.Context) {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User credentials"
+// @Param user body models.LoginRequest true "User credentials"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /user/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var request models.LoginRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	userID, err := h.service.Login(user.Username, user.PasswordHash)
+	userID, err := h.service.Login(request.Username, request.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -74,12 +74,13 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
+		"user_id": userID,
 		"token":   token,
 	})
 }
 
 // RegisterUserRoutes sets up the routes for user handling with Gin
-func RegisterUserRoutes(router *gin.RouterGroup, userService *services.UserService) {
+func RegisterUserRoutes(router *gin.Engine, userService *services.UserService) {
 	handler := NewUserHandler(userService)
 
 	userGroup := router.Group("/user")

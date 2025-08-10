@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"BecomeOverMan/internal/services"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -27,4 +28,20 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Next()
 	}
+}
+
+// ==== Helping Functions ====
+
+func GetUserID(c *gin.Context) (int, error) {
+	userIDKey, exists := c.Get("user_id")
+	if !exists {
+		return 0, errors.New("Can't get user_id from context")
+	}
+
+	userID, ok := userIDKey.(int)
+	if !ok {
+		return 0, errors.New("user ID is not integer")
+	}
+
+	return userID, nil
 }

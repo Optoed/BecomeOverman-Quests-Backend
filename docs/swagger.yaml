@@ -1,4 +1,18 @@
 definitions:
+  models.LoginRequest:
+    properties:
+      password:
+        maxLength: 128
+        minLength: 3
+        type: string
+      username:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - password
+    - username
+    type: object
   models.Quest:
     properties:
       category:
@@ -26,6 +40,23 @@ definitions:
       title:
         type: string
     type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 128
+        minLength: 3
+        type: string
+      username:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   models.Task:
     properties:
       base_coin_reward:
@@ -49,41 +80,6 @@ definitions:
       title:
         type: string
     type: object
-  models.User:
-    properties:
-      charisma_level:
-        type: integer
-      coin_balance:
-        type: integer
-      created_at:
-        type: string
-      current_streak:
-        type: integer
-      email:
-        type: string
-      health_level:
-        type: integer
-      id:
-        type: integer
-      intelligence_level:
-        type: integer
-      is_premium:
-        type: boolean
-      last_active_at:
-        type: string
-      level:
-        type: integer
-      longest_streak:
-        type: integer
-      password_hash:
-        type: string
-      username:
-        type: string
-      willpower_level:
-        type: integer
-      xp_points:
-        type: integer
-    type: object
 info:
   contact: {}
   description: This is the API documentation for BecomeOverMan
@@ -96,11 +92,6 @@ paths:
       - application/json
       description: Marks a specific task as completed by the user
       parameters:
-      - description: User ID
-        in: header
-        name: X-User-ID
-        required: true
-        type: integer
       - description: Quest ID
         in: path
         name: questID
@@ -139,11 +130,6 @@ paths:
       - application/json
       description: Finalizes quest completion if all tasks are done
       parameters:
-      - description: User ID
-        in: header
-        name: X-User-ID
-        required: true
-        type: integer
       - description: Quest ID
         in: path
         name: questID
@@ -177,11 +163,6 @@ paths:
       - application/json
       description: Allows user to purchase a quest if they have enough currency
       parameters:
-      - description: User ID
-        in: header
-        name: X-User-ID
-        required: true
-        type: integer
       - description: Quest ID
         in: path
         name: questID
@@ -215,11 +196,6 @@ paths:
       - application/json
       description: Begins the execution of a purchased quest
       parameters:
-      - description: User ID
-        in: header
-        name: X-User-ID
-        required: true
-        type: integer
       - description: Quest ID
         in: path
         name: questID
@@ -253,12 +229,6 @@ paths:
       - application/json
       description: Returns quests available for the current user based on their level
         and coin balance
-      parameters:
-      - description: User ID
-        in: header
-        name: X-User-ID
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
@@ -296,7 +266,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/models.LoginRequest'
       produces:
       - application/json
       responses:
@@ -332,7 +302,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/models.RegisterRequest'
       produces:
       - application/json
       responses:
