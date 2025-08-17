@@ -21,133 +21,127 @@
         }
 
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #f59e0b;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
+            --secondary: #f97316;
+            --success: #16a34a;
+            --warning: #f97316;
             --danger: #ef4444;
-            --dark: #1f2937;
-            --light: #f8fafc;
+            --bg: #f5f5f7;
+            --surface: #ffffff;
+            --panel: #ffffff;
+            --panel-soft: #f9fafb;
+            --border-subtle: #e5e7eb;
+            --border-strong: #d1d5db;
+            --text-main: #111827;
+            --text-muted: #6b7280;
             --gray: #6b7280;
             --gray-light: #e5e7eb;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
             min-height: 100vh;
-            padding: 20px;
-            color: var(--dark);
+            padding: 16px 20px;
+            color: var(--text-main);
         }
 
         .container {
-            /* Базовые стили для десктопа */
-            width: 99%;
-            /*max-width: 2000px;*/
+            width: 100%;
+            max-width: 1600px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-height: 100vh;
+            background-color: var(--surface);
+            padding: 24px 24px 32px;
+            border-radius: 18px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+            border: 1px solid var(--border-subtle);
+            min-height: calc(100vh - 40px);
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
+            font-size: 26px;
+            letter-spacing: 0.02em;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header p {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .header::after {
-            content: '';
-            display: block;
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            margin: 0 auto;
-            border-radius: 2px;
+            content: none;
         }
 
         .tabs {
             display: flex;
-            margin-bottom: 30px;
-            background: var(--light);
-            border-radius: 15px;
-            padding: 5px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 22px;
         }
 
         .tab {
             flex: 1;
-            padding: 15px 20px;
+            min-width: 120px;
+            padding: 10px 14px;
             cursor: pointer;
             border: none;
-            background: none;
-            border-radius: 12px;
-            font-weight: 600;
-            color: var(--gray);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            transition: left 0.3s ease;
-            z-index: 1;
+            background-color: var(--panel-soft);
+            border-radius: 999px;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+            transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .tab span {
             position: relative;
-            z-index: 2;
-        }
-
-        .tab.active::before {
-            left: 0;
+            z-index: 1;
         }
 
         .tab.active {
-            color: white;
-            transform: translateY(-2px);
+            background-color: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
+            border-color: var(--primary);
         }
 
         .tab:hover:not(.active) {
-            color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
+            background-color: #eef2ff;
+            border-color: #c7d2fe;
+            color: #111827;
         }
 
         .tab-content {
             display: none;
-            padding: 30px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--gray-light);
-            animation: fadeIn 0.5s ease;
+            padding: 20px 18px;
+            background-color: var(--panel);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+            border: 1px solid var(--border-subtle);
+            animation: fadeIn 0.25s ease-out;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(4px);
             }
 
             to {
@@ -161,115 +155,79 @@
         }
 
         .card {
-            background: white;
-            border: 1px solid var(--gray-light);
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border: 1px solid var(--border-subtle);
+            padding: 16px 16px 14px;
+            margin: 12px 0;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
         }
 
         .card h4 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
         }
 
         .card p {
-            color: var(--gray);
-            line-height: 1.6;
-            margin-bottom: 15px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
 
         .btn {
-            padding: 12px 25px;
-            margin: 5px;
+            padding: 8px 16px;
+            margin: 4px;
             border: none;
-            border-radius: 12px;
+            border-radius: 999px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: background-color 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
             position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .btn:hover::before {
-            left: 100%;
+            color: #111827;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            background-color: var(--primary);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            background-color: var(--primary-dark);
+            box-shadow: 0 10px 26px rgba(79, 70, 229, 0.45);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            background-color: var(--success);
+            color: #052e16;
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
         }
 
         .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            background-color: #059669;
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-            color: white;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            background-color: var(--warning);
+            color: #451a03;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.25);
         }
 
         .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            background-color: #eab308;
         }
 
         .btn-info {
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white;
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            background-color: #06b6d4;
+            color: #0f172a;
+            box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25);
         }
 
         .btn-info:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+            background-color: #0891b2;
         }
 
         .form-group {
@@ -278,22 +236,22 @@
 
         input,
         select {
-            padding: 15px;
+            padding: 12px;
             width: 100%;
-            margin: 8px 0;
-            border: 2px solid var(--gray-light);
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+            margin: 6px 0;
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+            background-color: #ffffff;
+            color: var(--text-main);
         }
 
         input:focus,
         select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.6);
         }
 
         .error {
@@ -1158,6 +1116,39 @@
             font-weight: 600;
         }
 
+        /* Универсальные бейджи для поиска и статусов */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: rgba(30, 64, 175, 0.2);
+            color: #c7d2fe;
+        }
+
+        .badge.secondary {
+            background: rgba(31, 41, 55, 0.8);
+            color: #e5e7eb;
+        }
+
+        .badge.difficulty-1 {
+            background: rgba(22, 163, 74, 0.2);
+            color: #bbf7d0;
+        }
+
+        .badge.difficulty-2 {
+            background: rgba(202, 138, 4, 0.25);
+            color: #fee2b3;
+        }
+
+        .badge.difficulty-3,
+        .badge.difficulty-4 {
+            background: rgba(185, 28, 28, 0.25);
+            color: #fecaca;
+        }
+
         .badge-common {
             background: rgba(107, 114, 128, 0.1);
             color: var(--gray);
@@ -1610,6 +1601,7 @@
             <button class="tab" onclick="openTab('profile')"><span>👤 Профиль</span></button>
             <button class="tab" onclick="openTab('quests')"><span>🎯 Квесты</span></button>
             <button class="tab" onclick="openTab('ai-quests')"><span>🤖 AI Квесты</span></button>
+            <button class="tab" onclick="openTab('search-quests')"><span>🔍 Поиск квестов</span></button>
             <button class="tab" onclick="openTab('friends')"><span>👥 Друзья</span></button>
             <button class="tab" onclick="openTab('my-quests')"><span>📚 Мои квесты</span></button>
             <button class="tab" onclick="openTab('calendar')"><span>📅 Календарь</span></button>
@@ -1641,13 +1633,78 @@
             </div>
         </div>
 
+        <!-- Поиск квестов -->
+        <div id="search-quests" class="tab-content">
+            <h3>🔍 Поиск квестов (beta)</h3>
+
+            <div class="card" style="padding: 18px 16px;">
+                <form id="search-form" onsubmit="submitQuestSearch(event)">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div style="flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 20px;">🔍</span>
+                            <input id="search-query" type="text"
+                                placeholder="Например: 'спорт челлендж', 'развитие силы воли', 'совместный квест с другом'"
+                                style="flex: 1; padding: 10px; border-radius: 999px; border: 1px solid var(--gray-light);">
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <!-- <select id="search-status"
+                                style="border-radius: 999px; padding: 8px 10px; border: 1px solid var(--gray-light); font-size: 13px;">
+                                <option value="all">Все квесты</option>
+                                <option value="available">Доступные</option>
+                                <option value="my">Мои</option>
+                                <option value="not_available">Недоступные</option>
+                            </select> -->
+                            <button id="search-button" type="submit" class="btn btn-primary">
+                                Искать
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <p style="margin-top: 10px; font-size: 12px; color: var(--gray);">
+                    Опишите желаемый квест естественным языком — AI подберёт наиболее подходящие варианты.
+                </p>
+            </div>
+
+            <div id="search-results" style="margin-top: 20px;"></div>
+        </div>
+
         <!-- Квесты -->
         <div id="quests" class="tab-content">
-            <h3>🎯 Доступные квесты</h3>
+            <!-- Доступные квесты к покупке -->
+            <h3>🎯 Доступные к приобретению квесты</h3>
+
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="search-available-quests" placeholder="🔍 Поиск по названию или описанию..."
+                    style="padding: 12px; width: 100%; border-radius: 12px; border: 2px solid var(--gray-light);">
+                <button class="btn btn-primary" onclick="searchAvailableQuests()"
+                    style="margin-top: 10px; width: 100%;">
+                    🔍 Искать
+                </button>
+            </div>
+
             <div id="quests-list"></div>
 
-            <h3>🏪 Магазин квестов</h3>
+            <!-- Недоступные к приобретению  -->
+            <h3>🏪 Откроются позже </h3>
+
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="search-shop-quests" placeholder="🔍 Поиск в магазине квестов..."
+                    style="padding: 12px; width: 100%; border-radius: 12px; border: 2px solid var(--gray-light);">
+                <button class="btn btn-primary" onclick="searchShopQuests()" style="margin-top: 10px; width: 100%;">
+                    🔍 Искать
+                </button>
+            </div>
+
             <div id="quests-shop"></div>
+
+            <!-- Рекомендации квестов -->
+            <h3>✨ Рекомендации для вас</h3>
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="loadRecommendations()" style="width: 100%;">
+                    🎯 Получить персональные рекомендации
+                </button>
+            </div>
+            <div id="recommendations-list"></div>
 
             <h3>🔍 Детали квеста</h3>
             <input type="number" id="quest-details-id" placeholder="🔢 ID квеста">
@@ -1716,6 +1773,15 @@
             <h3>👥 Мои друзья</h3>
             <div id="friends-list" style="margin-bottom: 10px;"></div>
 
+            <!-- Рекомендации друзей -->
+            <h3>✨ Рекомендации друзей</h3>
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="loadFriendRecommendations()" style="width: 100%;">
+                    🎯 Найти друзей по интересам
+                </button>
+            </div>
+            <div id="friend-recommendations-list"></div>
+
             <h3>🤝 Совместный квест</h3>
             <input type="number" id="shared-friend-id" placeholder="ID друга">
             <input type="number" id="shared-quest-id" placeholder="ID квеста">
@@ -1725,6 +1791,12 @@
         <!-- Мои квесты -->
         <div id="my-quests" class="tab-content">
             <h3>🔥 Активные квесты</h3>
+
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="search-my-quests" placeholder="🔍 Поиск по моим квестам..."
+                    style="padding: 12px; width: 100%; border-radius: 12px; border: 2px solid var(--gray-light);">
+            </div>
+
             <div id="active-quests"></div>
 
             <div id="active-quest-tasks" style="display: none;">
@@ -2317,6 +2389,162 @@
             }
         }
 
+        // ---- Поиск квестов (/quests/search) ----
+
+        function renderSearchEmptyState(message) {
+            const container = document.getElementById('search-results');
+            container.innerHTML = `
+                <div class="card" style="text-align: center; padding: 18px;">
+                    <div style="font-size: 22px; margin-bottom: 6px;">🤔</div>
+                    <p style="margin: 0; color: var(--gray);">${message}</p>
+                </div>
+            `;
+        }
+
+        function difficultyBadgeClass(difficulty) {
+            if (difficulty <= 1) return 'difficulty-1';
+            if (difficulty === 2) return 'difficulty-2';
+            return 'difficulty-3';
+        }
+
+        function formatHours(hours) {
+            if (!hours || hours <= 0) return 'Без ограничения';
+            if (hours < 24) return `${hours} ч`;
+            const days = Math.round(hours / 24);
+            return `${days} дн`;
+        }
+
+        function renderSearchResults(results, query) {
+            const container = document.getElementById('search-results');
+
+            if (!results || results.length === 0) {
+                renderSearchEmptyState('Ничего не найдено. Попробуйте переформулировать запрос или сделать его более общим.');
+                return;
+            }
+
+            const total = results.length;
+            container.innerHTML = `
+                <div style="font-size: 12px; color: var(--gray); margin-bottom: 10px;">
+                    Найдено квестов: ${total} • Запрос: "<strong>${query}</strong>"
+                </div>
+            ` + results.map(item => {
+                const quest = item.quest || {};
+                const tasks = quest.tasks || [];
+                const similarity = item.similarity_score ? (item.similarity_score * 100).toFixed(1) : null;
+
+                return `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0;">${quest.title || 'Без названия'}</h4>
+                                <p style="margin: 0; font-size: 12px; color: var(--gray);">
+                                    ID: ${quest.id ?? '—'} • Категория: ${quest.category || '—'} • ${quest.rarity || 'common'}
+                                </p>
+                            </div>
+                            ${similarity ? `<span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;">
+                                Релевантность: ${similarity}%
+                            </span>` : ''}
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; font-size: 12px;">
+                            ${quest.category ? `<span class="badge ">📁 ${quest.category}</span>` : ''}
+                            ${quest.difficulty !== undefined ? `<span class="badge secondary">⚙️ Сложность: ${quest.difficulty}</span>` : ''}
+                            ${quest.is_sequential ? `<span class="badge secondary">🔗 Последовательный</span>` : `<span class="badge secondary">🔀 В свободном порядке</span>`}
+                            ${quest.tasks_count ? `<span class="badge secondary">✅ Заданий: ${quest.tasks_count}</span>` : ''}
+                        </div>
+
+                        ${quest.description ? `<p style="font-size: 13px; margin: 6px 0 8px;">${quest.description}</p>` : ''}
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--gray); margin-bottom: 8px;">
+                            ${quest.price !== undefined ? `<span>💰 Цена: ${quest.price} монет</span>` : ''}
+                            ${(quest.reward_coin !== undefined || quest.reward_xp !== undefined) ? `<span>🏆 Награда: ${quest.reward_coin || 0} монет, ${quest.reward_xp || 0} XP</span>` : ''}
+                            ${quest.time_limit_hours !== undefined ? `<span>⏱ Лимит: ${formatHours(quest.time_limit_hours)}</span>` : ''}
+                        </div>
+
+                        ${tasks.length ? `
+                            <div style="border-top: 1px dashed var(--gray-light); padding-top: 8px; margin-top: 4px;">
+                                <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px 0;">📋 Задачи квеста:</p>
+                                ${tasks.map((task, index) => `
+                                    <div style="margin-bottom: 6px;">
+                                        <div style="font-size: 13px; font-weight: 600;">${index + 1}. ${task.title || 'Без названия'}</div>
+                                        ${task.description ? `<div style="font-size: 12px; color: var(--gray);">${task.description}</div>` : ''}
+                                        <div style="font-size: 11px; color: var(--gray); margin-top: 2px;">
+                                            ${task.category ? `Категория: ${task.category} • ` : ''}
+                                            Сложность: ${task.difficulty ?? '—'} •
+                                            Награда: ${task.base_xp_reward || 0} XP, ${task.base_coin_reward || 0} монет
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Открыть детали</button>
+                            <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
+                            <span style="font-size: 11px; color: var(--gray);">ID квеста: ${quest.id ?? '—'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function submitQuestSearch(event) {
+            event.preventDefault();
+
+            const queryInput = document.getElementById('search-query');
+            const statusSelect = document.getElementById('search-status');
+            const button = document.getElementById('search-button');
+            const resultsContainer = document.getElementById('search-results');
+
+            const query = queryInput.value.trim();
+            if (!query) {
+                renderSearchEmptyState('Введите текст запроса для поиска квестов.');
+                return;
+            }
+
+            resultsContainer.innerHTML = `
+                <div class="card" style="text-align: center; padding: 18px;">
+                    <div style="font-size: 20px; margin-bottom: 6px;">⏳</div>
+                    <p style="margin: 0; color: var(--gray);">Ищем подходящие квесты по вашему запросу...</p>
+                </div>
+            `;
+            button.disabled = true;
+
+            const body = {
+                query: query,
+                status: statusSelect.value || 'all',
+                top_k: 10
+            };
+
+            const result = await apiCall('/quests/search', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+
+            button.disabled = false;
+
+            if (!result.success) {
+                resultsContainer.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 18px;">
+                        <div style="font-size: 22px; margin-bottom: 6px;">❌ Ошибка поиска</div>
+                        <p style="margin: 0; color: var(--gray);">${result.data?.error || 'Неизвестная ошибка. Попробуйте позже.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (!Array.isArray(result.data)) {
+                resultsContainer.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 18px;">
+                        <div style="font-size: 22px; margin-bottom: 6px;">⚠️ Неожиданный ответ</div>
+                        <p style="margin: 0; color: var(--gray);">Сервис поиска вернул данные в неожиданном формате.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            renderSearchResults(result.data, query);
+        }
         async function purchaseQuest(questId) {
             const result = await apiCall(`/quests/${questId}/purchase`, { method: 'POST' });
             if (result.success) {
@@ -2324,6 +2552,54 @@
                 loadQuests();
             } else {
                 showError('Ошибка покупки: ' + result.data.error);
+            }
+        }
+
+        async function loadRecommendations() {
+            const recommendationsElement = document.getElementById('recommendations-list');
+            recommendationsElement.innerHTML = '<p>Загрузка рекомендаций...</p>';
+
+            const result = await apiCall('/quests/recommend', {
+                method: 'POST'
+            });
+
+            if (result.success && result.data && result.data.recommendations && Array.isArray(result.data.recommendations)) {
+                const recommendations = result.data.recommendations;
+
+                if (recommendations.length === 0) {
+                    recommendationsElement.innerHTML = '<p>Рекомендации пока недоступны. Попробуйте выполнить несколько квестов!</p>';
+                    return;
+                }
+
+                recommendationsElement.innerHTML = `
+                    <div style="margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-radius: 8px;">
+                        <p><strong>📊 Информация о профиле:</strong></p>
+                        <p>Квестов в профиле: ${result.data.user_profile_info?.quests_count || 0}</p>
+                    </div>
+                    ${recommendations.map(quest => `
+                        <div class="card" style="margin-bottom: 15px;">
+                            <h4>${quest.title || 'Без названия'}</h4>
+                            <p>${quest.description || 'Описание отсутствует'}</p>
+                            <div style="margin: 10px 0;">
+                                <span style="background: #e7f3ff; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">
+                                    📁 ${quest.category || 'Неизвестно'}
+                                </span>
+                                <span style="background: #fff3cd; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; margin-left: 8px;">
+                                    ⭐ Совпадение: ${(quest.similarity_score * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            <p style="font-size: 0.9em; color: #666; font-style: italic; margin-top: 8px;">
+                                💡 ${quest.explanation || 'Рекомендация основана на ваших предпочтениях'}
+                            </p>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Детали</button>
+                                <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                recommendationsElement.innerHTML = '<p style="color: #dc3545;">Ошибка загрузки рекомендаций: ' + (result.data?.error || 'Неизвестная ошибка') + '</p>';
             }
         }
 
@@ -2505,6 +2781,120 @@
                 `).join('');
             } else {
                 document.getElementById('friends-list').innerHTML = '<p>У вас пока нет друзей</p>';
+            }
+        }
+
+        async function loadFriendRecommendations() {
+            const recommendationsElement = document.getElementById('friend-recommendations-list');
+            recommendationsElement.innerHTML = '<p>Загрузка рекомендаций...</p>';
+
+            const result = await apiCall('/quests/recommend/friends', {
+                method: 'POST'
+            });
+
+            if (result.success && result.data && Array.isArray(result.data)) {
+                const recommendations = result.data;
+
+                if (recommendations.length === 0) {
+                    recommendationsElement.innerHTML = '<p>Рекомендации друзей пока недоступны. Попробуйте выполнить несколько квестов!</p>';
+                    return;
+                }
+
+                recommendationsElement.innerHTML = recommendations.map(rec => {
+                    const user = rec.user_profile;
+                    const explanation = rec.explanation;
+                    const details = explanation?.details || {};
+                    const similarityPercent = (rec.similarity_score * 100).toFixed(1);
+
+                    return `
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                                <div>
+                                    <h4>👤 ${user.username || 'Без имени'}</h4>
+                                    <p style="color: #666; font-size: 0.9em;">ID: ${user.id} | Email: ${user.email || 'Не указан'}</p>
+                                </div>
+                                <span style="background: #fff3cd; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.95em;">
+                                    ⭐ ${similarityPercent}%
+                                </span>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                                <p style="margin: 0 0 8px 0;"><strong>📊 Профиль пользователя:</strong></p>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; font-size: 0.9em;">
+                                    ${user.coin_balance !== undefined ? `<p>💰 Монеты: ${user.coin_balance}</p>` : ''}
+                                    ${user.xp_points !== undefined ? `<p>⭐ XP: ${user.xp_points}</p>` : ''}
+                                    ${user.level !== undefined ? `<p>📈 Уровень: ${user.level}</p>` : ''}
+                                    ${user.created_at ? `<p>📅 Регистрация: ${new Date(user.created_at).toLocaleDateString('ru-RU')}</p>` : ''}
+                                </div>
+                            </div>
+
+                            <div style="background: #e7f3ff; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                                <p style="margin: 0 0 8px 0;"><strong>💡 Почему рекомендован:</strong></p>
+                                <p style="margin: 0 0 10px 0; font-style: italic;">${explanation?.summary || 'Рекомендация основана на схожести интересов'}</p>
+                                
+                                ${details.common_categories && details.common_categories.length > 0 ? `
+                                    <div style="margin-top: 8px;">
+                                        <p style="margin: 0 0 4px 0; font-size: 0.9em;"><strong>Общие категории:</strong></p>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                            ${details.common_categories.map(cat => `
+                                                <span style="background: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">
+                                                    📁 ${cat}
+                                                </span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${details.common_quests_count > 0 ? `
+                                    <div style="margin-top: 8px;">
+                                        <p style="margin: 0 0 4px 0; font-size: 0.9em;">
+                                            <strong>Общих квестов:</strong> ${details.common_quests_count}
+                                            ${details.common_quests_ids && details.common_quests_ids.length > 0 ?
+                                ` (ID: ${details.common_quests_ids.join(', ')})` : ''}
+                                        </p>
+                                    </div>
+                                ` : ''}
+                                
+                                <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; font-size: 0.85em;">
+                                    <div>
+                                        <p style="margin: 0;"><strong>Ваши категории:</strong></p>
+                                        <p style="margin: 4px 0 0 0;">${details.user_categories_top?.join(', ') || 'Нет данных'}</p>
+                                        <p style="margin: 4px 0 0 0; color: #666;">Квестов: ${details.user_quests_count || 0}</p>
+                                    </div>
+                                    <div>
+                                        <p style="margin: 0;"><strong>Категории друга:</strong></p>
+                                        <p style="margin: 4px 0 0 0;">${details.other_user_categories_top?.join(', ') || 'Нет данных'}</p>
+                                        <p style="margin: 4px 0 0 0; color: #666;">Квестов: ${details.other_user_quests_count || 0}</p>
+                                    </div>
+                                </div>
+                                
+                                ${details.similarity_level ? `
+                                    <p style="margin: 8px 0 0 0; font-size: 0.9em;">
+                                        <strong>Уровень схожести:</strong> ${details.similarity_level}
+                                    </p>
+                                ` : ''}
+                            </div>
+
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-primary" onclick="addFriendById(${user.id})">
+                                    ➕ Добавить в друзья
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                recommendationsElement.innerHTML = '<p style="color: #dc3545;">Ошибка загрузки рекомендаций: ' + (result.data?.error || 'Неизвестная ошибка') + '</p>';
+            }
+        }
+
+        async function addFriendById(friendId) {
+            const result = await apiCall(`/friends/${friendId}`, { method: 'POST' });
+            if (result.success) {
+                showSuccess('Друг успешно добавлен!');
+                loadFriends();
+            } else {
+                showError('Ошибка добавления друга: ' + result.data.error);
             }
         }
 
