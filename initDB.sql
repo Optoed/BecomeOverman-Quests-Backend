@@ -36,7 +36,7 @@ CREATE TABLE users (
 
     xp_points INT DEFAULT 0,
     coin_balance INT DEFAULT 0,
-    level INT DEFAULT 0,
+    level INT DEFAULT 1,
 
     -- TODO: если появятся еще ветки то поправим
     health_level INT DEFAULT 0,

@@ -2447,7 +2447,7 @@
                         </div>
 
                         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; font-size: 12px;">
-                            ${quest.category ? `<span class="badge ">📁 ${quest.category}</span>` : ''}
+                            ${quest.category ? `<span class="badge secondary">📁 ${quest.category}</span>` : ''}
                             ${quest.difficulty !== undefined ? `<span class="badge secondary">⚙️ Сложность: ${quest.difficulty}</span>` : ''}
                             ${quest.is_sequential ? `<span class="badge secondary">🔗 Последовательный</span>` : `<span class="badge secondary">🔀 В свободном порядке</span>`}
                             ${quest.tasks_count ? `<span class="badge secondary">✅ Заданий: ${quest.tasks_count}</span>` : ''}
@@ -2492,7 +2492,7 @@
             event.preventDefault();
 
             const queryInput = document.getElementById('search-query');
-            const statusSelect = document.getElementById('search-status');
+            const statusSelect = 'all'; // TODO: пока что только all
             const button = document.getElementById('search-button');
             const resultsContainer = document.getElementById('search-results');
 
