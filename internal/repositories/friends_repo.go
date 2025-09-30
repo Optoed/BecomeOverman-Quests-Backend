@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+
 	"BecomeOverMan/internal/models"
 	"errors"
 
@@ -81,10 +83,24 @@ func (r *UserRepository) GetAllAcceptedFriends(userID int) ([]int, error) {
 func (r *UserRepository) GetFriends(userID int) ([]models.Friend, error) {
 	var friends []models.Friend
 	query := `
-		SELECT f.*, u.username 
+		SELECT 
+			f.id,
+			$1 as user_id,
+			CASE 
+				WHEN f.user_id = $1 THEN f.friend_id 
+				ELSE f.user_id 
+			END as friend_id,
+			f.status,
+			CASE 
+				WHEN f.user_id = $1 THEN u1.username 
+				ELSE u2.username 
+			END as username,
+			f.created_at
 		FROM friends f 
-		JOIN users u ON f.friend_id = u.id 
-		WHERE f.user_id = $1 AND f.status = 'accepted'
+		LEFT JOIN users u1 ON f.friend_id = u1.id 
+		LEFT JOIN users u2 ON f.user_id = u2.id 
+		WHERE (f.user_id = $1 OR f.friend_id = $1) 
+		AND f.status = 'accepted'
 	`
 	err := r.db.Select(&friends, query, userID)
 	return friends, err
@@ -92,18 +108,20 @@ func (r *UserRepository) GetFriends(userID int) ([]models.Friend, error) {
 
 // Shared quest methods
 func (r *QuestRepository) CreateSharedQuest(user1ID, user2ID, questID int) error {
-	tx, err := r.db.Beginx()
+	ctx := context.Background()
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	// Проверяем, что пользователи друзья
+	// Проверяем, что пользователи друзья (проверяем оба направления)
 	var areFriends bool
 	err = tx.Get(&areFriends, `
 		SELECT EXISTS(
 			SELECT 1 FROM friends 
-			WHERE user_id = $1 AND friend_id = $2 AND status = 'accepted'
+			WHERE ((user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1))
+			AND status = 'accepted'
 		)`, user1ID, user2ID)
 	if err != nil {
 		return err
@@ -181,12 +199,37 @@ func (r *QuestRepository) startQuestForUser(tx *sqlx.Tx, userID, questID int) er
 		return err
 	}
 
+	// Создаем user_tasks для всех задач квеста
+	_, err = tx.Exec(`
+		INSERT INTO user_tasks (user_id, task_id, quest_id, status)
+		SELECT $1, qt.task_id, qt.quest_id, 'not_started'
+		FROM quest_tasks qt
+		WHERE qt.quest_id = $2
+		ORDER BY qt.task_order
+	`, userID, questID)
+	if err != nil {
+		return err
+	}
+
 	// Стартуем квест
 	_, err = tx.Exec(`
 			UPDATE user_quests 
-			SET status = 'started', started_at = NOW() 
+			SET status = 'started', started_at = NOW(), expires_at = (
+				SELECT NOW() + (time_limit_hours || ' hours')::interval 
+				FROM quests WHERE id = $2
+			)
 			WHERE user_id = $1 AND quest_id = $2`,
 		userID, questID)
+	if err != nil {
+		return err
+	}
+
+	// Активируем задачи
+	_, err = tx.Exec(`
+		UPDATE user_tasks
+		SET status = 'active'
+		WHERE user_id = $1 AND quest_id = $2 AND status = 'not_started'
+	`, userID, questID)
 
 	return err
 }
