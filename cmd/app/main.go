@@ -1,3 +1,10 @@
+// @title BecomeOverMan API
+// @version 1.0
+// @description This is the API documentation for BecomeOverMan
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @BasePath /api
 package main
 
 import (
@@ -17,6 +24,11 @@ import (
 	"BecomeOverMan/internal/services"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file" // Импорт для работы с миграциями через файлы
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "BecomeOverMan/docs" // важно для swaggo
 )
 
 func main() {
@@ -56,6 +68,9 @@ func main() {
 	questService := services.NewQuestService(questRepo)
 
 	r := gin.Default()
+
+	// Swagger endpoint
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/api")
 	{

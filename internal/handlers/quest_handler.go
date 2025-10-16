@@ -192,6 +192,7 @@ func RegisterQuestRoutes(router *gin.RouterGroup, questService *services.QuestSe
 	handler := NewQuestHandler(questService)
 
 	questGroup := router.Group("/quests")
+	// questGroup.Use(middleware.JWTAuthMiddleware())
 	{
 		questGroup.GET("/available", handler.GetAvailableQuestsHandler)
 		questGroup.POST("/:questID/purchase", handler.PurchaseQuestHandler)

@@ -1,0 +1,365 @@
+definitions:
+  models.Quest:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: integer
+      id:
+        type: integer
+      price:
+        type: integer
+      rarity:
+        type: string
+      reward_coin:
+        type: integer
+      reward_xp:
+        type: integer
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      time_limit_hours:
+        type: integer
+      title:
+        type: string
+    type: object
+  models.Task:
+    properties:
+      base_coin_reward:
+        type: integer
+      base_xp_reward:
+        type: integer
+      category:
+        type: string
+      created_at:
+        description: 'TODO: requeired level of health, intelligence, charisma, willpower
+          ?'
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: integer
+      id:
+        type: integer
+      rarity:
+        type: string
+      title:
+        type: string
+    type: object
+  models.User:
+    properties:
+      charisma_level:
+        type: integer
+      coin_balance:
+        type: integer
+      created_at:
+        type: string
+      current_streak:
+        type: integer
+      email:
+        type: string
+      health_level:
+        type: integer
+      id:
+        type: integer
+      intelligence_level:
+        type: integer
+      is_premium:
+        type: boolean
+      last_active_at:
+        type: string
+      level:
+        type: integer
+      longest_streak:
+        type: integer
+      password_hash:
+        type: string
+      username:
+        type: string
+      willpower_level:
+        type: integer
+      xp_points:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: This is the API documentation for BecomeOverMan
+  title: BecomeOverMan API
+  version: "1.0"
+paths:
+  /quests/{questID}/{taskID}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Marks a specific task as completed by the user
+      parameters:
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: integer
+      - description: Quest ID
+        in: path
+        name: questID
+        required: true
+        type: integer
+      - description: Task ID
+        in: path
+        name: taskID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Complete a quest task
+      tags:
+      - Quests
+  /quests/{questID}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Finalizes quest completion if all tasks are done
+      parameters:
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: integer
+      - description: Quest ID
+        in: path
+        name: questID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Complete a quest
+      tags:
+      - Quests
+  /quests/{questID}/purchase:
+    post:
+      consumes:
+      - application/json
+      description: Allows user to purchase a quest if they have enough currency
+      parameters:
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: integer
+      - description: Quest ID
+        in: path
+        name: questID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Purchase a quest
+      tags:
+      - Quests
+  /quests/{questID}/start:
+    post:
+      consumes:
+      - application/json
+      description: Begins the execution of a purchased quest
+      parameters:
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: integer
+      - description: Quest ID
+        in: path
+        name: questID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Start a purchased quest
+      tags:
+      - Quests
+  /quests/available:
+    get:
+      consumes:
+      - application/json
+      description: Returns quests available for the current user based on their level
+        and coin balance
+      parameters:
+      - description: User ID
+        in: header
+        name: X-User-ID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Quest'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get available quests for user
+      tags:
+      - Quests
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with username and password, returns JWT
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login a user
+      tags:
+      - user
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user by username, email, and password
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
