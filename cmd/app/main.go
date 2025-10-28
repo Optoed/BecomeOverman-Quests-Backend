@@ -69,7 +69,13 @@ func main() {
 	questService := services.NewQuestService(questRepo)
 
 	r := gin.Default()
-	r.Use(cors.Default()) // Позволит все запросы из любых источников (для разработки)
+	// Настройка CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
