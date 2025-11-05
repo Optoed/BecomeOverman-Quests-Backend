@@ -44,5 +44,7 @@ type Task struct {
 	BaseXpReward   int    `json:"base_xp_reward" db:"base_xp_reward"`
 	BaseCoinReward int    `json:"base_coin_reward" db:"base_coin_reward"`
 
+	TaskOrder int `json:"task_order" db:"task_order"`
+
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }

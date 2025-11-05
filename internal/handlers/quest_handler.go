@@ -22,7 +22,7 @@ func NewQuestHandler(questService *services.QuestService) *QuestHandler {
 
 // GetQuestDetails возвращает детали квеста с задачами
 func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
-	questIDStr := c.Param("id")
+	questIDStr := c.Param("questID")
 	questID, err := strconv.Atoi(questIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quest ID"})

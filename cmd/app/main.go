@@ -33,8 +33,11 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+	if err := godotenv.Load("../../.env"); err != nil {
+		err = godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file", err)
+		}
 	}
 
 	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
