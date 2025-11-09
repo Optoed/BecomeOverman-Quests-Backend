@@ -29,3 +29,13 @@ func (r *UserRepository) GetUserByUsername(username string) (*models.User, error
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) GetProfile(userID int) (models.User, error) {
+	var user models.User
+	query := `SELECT id, username, email, xp_points, coin_balance, level, created_at FROM users WHERE id = $1`
+	err := r.db.Get(&user, query, userID)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+}

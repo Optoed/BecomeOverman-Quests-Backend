@@ -58,3 +58,7 @@ func (s *UserService) AddFriend(userID, friendID int) error {
 func (s *UserService) GetFriends(userID int) ([]models.Friend, error) {
 	return s.repo.GetFriends(userID)
 }
+
+func (s *UserService) GetProfile(userID int) (models.User, error) {
+	return s.repo.GetProfile(userID)
+}

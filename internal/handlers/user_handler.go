@@ -146,6 +146,22 @@ func (h *UserHandler) GetFriends(c *gin.Context) {
 	c.JSON(http.StatusOK, friends)
 }
 
+func (h *UserHandler) GetProfile(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	profile, err := h.service.GetProfile(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, profile)
+}
+
 // RegisterUserRoutes sets up the routes for user handling with Gin
 func RegisterUserRoutes(router *gin.Engine, userService *services.UserService) {
 	handler := NewUserHandler(userService)
@@ -154,6 +170,12 @@ func RegisterUserRoutes(router *gin.Engine, userService *services.UserService) {
 	{
 		userGroup.POST("/login", handler.Login)
 		userGroup.POST("/register", handler.Register)
+	}
+
+	userProtectedGroup := userGroup
+	userProtectedGroup.Use(middleware.JWTAuthMiddleware())
+	{
+		userProtectedGroup.GET("/profile", handler.GetProfile)
 	}
 
 	friendGroup := router.Group("/friends")
