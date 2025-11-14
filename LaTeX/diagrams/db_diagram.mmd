@@ -1,0 +1,126 @@
+erDiagram
+    users ||--o{ user_quests : ""
+    users ||--o{ user_tasks : ""
+    users ||--o{ user_coin_transactions : ""
+    users ||--o{ friends : ""
+    users ||--o{ shared_quests : ""
+    
+    quests ||--o{ quest_tasks : ""
+    quests ||--o{ user_quests : ""
+    quests ||--o{ shared_quests : ""
+    
+    tasks ||--o{ quest_tasks : ""
+    tasks ||--o{ user_tasks : ""
+    
+    
+    users {
+        SERIAL id PK
+        VARCHAR username
+        VARCHAR email
+        VARCHAR password_hash
+        INT xp_points
+        INT coin_balance
+        INT level
+        INT health_level
+        INT mental_health_level
+        INT intelligence_level
+        INT charisma_level
+        INT willpower_level
+        INT current_streak
+        INT longest_streak
+        TIMESTAMP created_at
+        TIMESTAMP last_active_at
+    }
+    
+    quests {
+        SERIAL id PK
+        VARCHAR title
+        TEXT description
+        VARCHAR category
+        VARCHAR rarity
+        INT difficulty
+        INT price
+        INT tasks_count
+        JSONB conditions_json
+        JSONB bonus_json
+        BOOLEAN is_sequential
+        INT reward_xp
+        INT reward_coin
+        INT time_limit_hours
+    }
+    
+    tasks {
+        SERIAL id PK
+        VARCHAR title
+        TEXT description
+        INT difficulty
+        VARCHAR rarity
+        VARCHAR category
+        INT base_xp_reward
+        INT base_coin_reward
+        TIMESTAMP created_at
+    }
+    
+    quest_tasks {
+        SERIAL id PK
+        INT quest_id FK
+        INT task_id FK
+        INT task_order
+    }
+    
+    user_quests {
+        SERIAL id PK
+        INT user_id FK
+        INT quest_id FK
+        VARCHAR status
+        INT xp_gained
+        INT coin_gained
+        TIMESTAMP started_at
+        TIMESTAMP completed_at
+        TIMESTAMP expires_at
+    }
+    
+    user_tasks {
+        SERIAL id PK
+        INT user_id FK
+        INT task_id FK
+        INT quest_id FK
+        VARCHAR status
+        TIMESTAMP scheduled_start
+        TIMESTAMP scheduled_end
+        TIMESTAMP deadline
+        INT duration
+        BOOLEAN updated_by_ai
+        BOOLEAN is_confirmed
+        TIMESTAMP completed_at
+        INT xp_gained
+        INT coin_gained
+    }
+    
+    user_coin_transactions {
+        SERIAL id PK
+        INT user_id FK
+        VARCHAR reference_type
+        INT reference_id
+        VARCHAR transaction_type
+        INT amount
+        TEXT description
+        TIMESTAMP created_at
+    }
+    
+    friends {
+        SERIAL id PK
+        INT user_id FK
+        INT friend_id FK
+        VARCHAR status
+        TIMESTAMP created_at
+    }
+    
+    shared_quests {
+        SERIAL id PK
+        INT quest_id FK
+        INT user1_id FK
+        INT user2_id FK
+        VARCHAR status
+        TIMESTAMP created_at
+    }

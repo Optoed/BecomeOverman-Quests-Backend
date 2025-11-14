@@ -1,0 +1,47 @@
+flowchart TD
+    Start([Пользователь начинает]) --> Browse[Просмотр доступных квестов]
+    Browse --> Filter{Фильтрация по уровню<br/>& балансу}
+    Filter -->|Показать доступные| ViewQuests[Просмотр списка квестов]
+    Filter -->|Недоступно| Wait[Ожидание повышения уровня]
+    
+    ViewQuests --> Select[Выбор квеста]
+    Select --> CheckBalance{Достаточно<br/>монет?}
+    
+    CheckBalance -->|Нет| Insufficient[Недостаточно средств]
+    CheckBalance -->|Да| Purchase[Покупка квеста]
+    
+    Purchase --> CreateUserQuest[Создание user_quests<br/>статус: 'purchased']
+    CreateUserQuest --> CreateTasks[Создание user_tasks<br/>для всех задач квеста]
+    CreateTasks --> DeductCoins[Списание монет<br/>Создание транзакции]
+    DeductCoins -.->|Асинхронно| NotifyRS[Отправка данных о квесте и пользователе в Recommendation Service]
+    DeductCoins --> QuestPurchased[Квест в инвентаре]
+
+    
+    QuestPurchased --> StartQuest{Начать квест?}
+    StartQuest -->|Да| UpdateStatus[Обновление статуса: 'started'<br/>Установка started_at]
+    StartQuest -->|Нет| WaitStart[Ожидание в инвентаре]
+    
+    UpdateStatus --> ActivateTasks[Активация всех задач<br/>статус: 'active']
+    ActivateTasks --> SetExpiry[Установка expires_at<br/>если есть time_limit]
+    SetExpiry --> QuestActive[Квест активен]
+    
+    QuestActive --> CompleteTask[Выполнение задачи]
+    CompleteTask --> CheckAllTasks{Все задачи<br/>выполнены?}
+    
+    CheckAllTasks -->|Нет| MoreTasks[Продолжить выполнение задач]
+    MoreTasks --> CompleteTask
+    
+    CheckAllTasks -->|Да| CompleteQuest[Завершение квеста]
+    CompleteQuest --> UpdateQuestStatus[Обновление статуса: 'completed'<br/>Установка completed_at]
+    UpdateQuestStatus --> AwardRewards[Начисление XP и монет<br/>Обновление уровня]
+    AwardRewards --> SaveHistory[Сохранение в историю]
+    SaveHistory --> QuestComplete([Квест завершен])
+    
+    WaitStart --> StartQuest
+    
+    style Start fill:#e1f5ff
+    style QuestComplete fill:#e1ffe1
+    style Purchase fill:#fff4e1
+    style QuestActive fill:#ffe1f5
+    style AwardRewards fill:#f5e1ff
+    style NotifyRS fill:#ffffe1

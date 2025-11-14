@@ -1,0 +1,86 @@
+\babel@toc {russian}{}\relax 
+\contentsline {section}{\cyrillictext \CYRV \CYRV \CYRE \CYRD \CYRE \CYRN \CYRI \CYRE }{5}{section*.1}%
+\contentsline {section}{\numberline {1}Анализ предметной области и существующих решений}{9}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Актуальность темы разработки адаптивных систем саморазвития}{9}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Анализ современной литературы и существующих решений}{10}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Алгоритмы Collaborative Filtering}{10}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Методы текстового поиска: TF-IDF}{10}{subsubsection.1.2.2}%
+\contentsline {subsubsection}{\numberline {1.2.3}Семантический анализ на основе BERT}{11}{subsubsection.1.2.3}%
+\contentsline {subsubsection}{\numberline {1.2.4}Выбор алгоритма для продакшена}{11}{subsubsection.1.2.4}%
+\contentsline {subsubsection}{\numberline {1.2.5}Технологические аспекты разработки ML-сервисов}{12}{subsubsection.1.2.5}%
+\contentsline {subsubsection}{\numberline {1.2.6}Анализ существующих систем рекомендаций}{12}{subsubsection.1.2.6}%
+\contentsline {subsection}{\numberline {1.3}Технологические аспекты разработки систем рекомендаций}{13}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}Архитектурные подходы и микросервисная архитектура}{13}{subsubsection.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}Библиотеки машинного обучения и обработки естественного языка}{13}{subsubsection.1.3.2}%
+\contentsline {subsubsection}{\numberline {1.3.3}Взаимодействие между микросервисами}{14}{subsubsection.1.3.3}%
+\contentsline {subsubsection}{\numberline {1.3.4}Кэширование и оптимизация производительности}{14}{subsubsection.1.3.4}%
+\contentsline {subsubsection}{\numberline {1.3.5}API design и REST principles}{14}{subsubsection.1.3.5}%
+\contentsline {subsubsection}{\numberline {1.3.6}Мониторинг и логирование}{15}{subsubsection.1.3.6}%
+\contentsline {subsubsection}{\numberline {1.3.7}Тестирование и качество кода}{15}{subsubsection.1.3.7}%
+\contentsline {section}{\numberline {2}Проектирование и реализация системы}{16}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Архитектура системы}{16}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Технологический стек и обоснование выбора}{17}{subsubsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.2}Реализация алгоритмов рекомендаций и поиска}{18}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Метрики оценки качества}{18}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Сравнительное тестирование: TF-IDF vs BERT}{18}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Алгоритм семантического поиска на основе BERT (основной метод)}{19}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.4}Сравнительное тестирование: Collaborative Filtering (KNN) vs BERT}{21}{subsubsection.2.2.4}%
+\contentsline {subsubsection}{\numberline {2.2.5}Использование BERT для рекомендаций квестов}{22}{subsubsection.2.2.5}%
+\contentsline {subsubsection}{\numberline {2.2.6}Использование BERT для рекомендаций друзей}{23}{subsubsection.2.2.6}%
+\contentsline {subsubsection}{\numberline {2.2.7}Общие выводы по сравнительному анализу}{24}{subsubsection.2.2.7}%
+\contentsline {subsection}{\numberline {2.3}Реализация основного backend-приложения}{24}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Система аутентификации и авторизации}{25}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Система уровней и геймификация}{25}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}Система фильтрации квестов по уровню сложности}{26}{subsubsection.2.3.3}%
+\contentsline {subsubsection}{\numberline {2.3.4}Управление квестами и задачами с использованием транзакций}{28}{subsubsection.2.3.4}%
+\contentsline {subsubsection}{\numberline {2.3.5}AI-генерация квестов через LLM API}{31}{subsubsection.2.3.5}%
+\contentsline {subsubsection}{\numberline {2.3.6}AI-генерация календаря задач}{34}{subsubsection.2.3.6}%
+\contentsline {subsubsection}{\numberline {2.3.7}Система дружеских взаимодействий и совместных квестов}{35}{subsubsection.2.3.7}%
+\contentsline {subsubsection}{\numberline {2.3.8}Интеграция с Recommendation Service}{36}{subsubsection.2.3.8}%
+\contentsline {subsubsection}{\numberline {2.3.9}Обработка голосового ввода (Web Speech API)}{38}{subsubsection.2.3.9}%
+\contentsline {subsubsection}{\numberline {2.3.10}Система транзакций и аудит финансовых операций}{38}{subsubsection.2.3.10}%
+\contentsline {subsubsection}{\numberline {2.3.11}Реализация frontend-приложения}{39}{subsubsection.2.3.11}%
+\contentsline {subsection}{\numberline {2.4}Архитектура базы данных и управление транзакциями}{40}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Основные таблицы и их назначение}{41}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Управление транзакциями и обеспечение целостности данных}{42}{subsubsection.2.4.2}%
+\contentsline {subsubsection}{\numberline {2.4.3}Ключевые бизнес-сущности и их взаимосвязи}{42}{subsubsection.2.4.3}%
+\contentsline {subsection}{\numberline {2.5}Процесс выполнения квеста и бизнес-логика}{43}{subsection.2.5}%
+\contentsline {subsubsection}{\numberline {2.5.1}Полный жизненный цикл квеста}{45}{subsubsection.2.5.1}%
+\contentsline {subsubsection}{\numberline {2.5.2}Особенности совместных квестов}{45}{subsubsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.6}Реализация Recommendation Service}{45}{subsection.2.6}%
+\contentsline {subsubsection}{\numberline {2.6.1}Архитектура Recommendation Service}{46}{subsubsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.7}Взаимодействие микросервисов и архитектурные решения}{47}{subsection.2.7}%
+\contentsline {subsubsection}{\numberline {2.7.1}Обработка ошибок и отказоустойчивость}{47}{subsubsection.2.7.1}%
+\contentsline {subsubsection}{\numberline {2.7.2}Слоистая архитектура backend-приложения}{48}{subsubsection.2.7.2}%
+\contentsline {subsubsection}{\numberline {2.7.3}Управление конфигурацией и переменными окружения}{50}{subsubsection.2.7.3}%
+\contentsline {subsubsection}{\numberline {2.7.4}Архитектурные паттерны и принципы проектирования}{51}{subsubsection.2.7.4}%
+\contentsline {subsubsection}{\numberline {2.7.5}Производительность и оптимизация}{51}{subsubsection.2.7.5}%
+\contentsline {subsection}{\numberline {2.8}Тестирование и валидация системы}{52}{subsection.2.8}%
+\contentsline {subsubsection}{\numberline {2.8.1}Тестирование алгоритмов рекомендаций}{52}{subsubsection.2.8.1}%
+\contentsline {subsubsection}{\numberline {2.8.2}Тестирование системы цензуры KIMI 2}{52}{subsubsection.2.8.2}%
+\contentsline {subsubsection}{\numberline {2.8.3}Интеграционное и end-to-end тестирование}{53}{subsubsection.2.8.3}%
+\contentsline {subsection}{\numberline {2.9}Направления дальнейшего развития}{53}{subsection.2.9}%
+\contentsline {section}{\cyrillictext \CYRZ \CYRA \CYRK \CYRL \CYRYU \CYRCH \CYRE \CYRN \CYRI \CYRE }{54}{section*.9}%
+\contentsline {section}{\cyrillictext \CYRS \CYRP \CYRI \CYRS \CYRO \CYRK \ \CYRI \CYRS \CYRP \CYRO \CYRL \CYRSFTSN \CYRZ \CYRO \CYRV \CYRA \CYRN \CYRN \CYRERY \CYRH \ \CYRI \CYRS \CYRT \CYRO \CYRCH \CYRN \CYRI \CYRK \CYRO \CYRV }{59}{section*.10}%
+\redeflsection 
+\ttl@change@i {\@ne }{section}{3ex}{\hspace {-3ex}}{\appendixname ~\thecontentslabel \hspace {2ex}}{\hspace {2.3em}}{\titlerule *[0.98ex]{.}\contentspage }\relax 
+\ttl@change@v {section}{}{}{}\relax 
+\contentsline {section}{\numberline {\CYRA }Database Schema}{62}{appendix.A}%
+\contentsline {section}{\numberline {\CYRB }JWT Authentication Implementation}{66}{appendix.B}%
+\contentsline {section}{\numberline {\CYRV }AI Quest Generation Implementation}{69}{appendix.C}%
+\contentsline {section}{\numberline {\CYRG }Friends Quests Implementation}{71}{appendix.D}%
+\contentsline {section}{\numberline {\CYRD }Backend Implementation (Go)}{75}{appendix.E}%
+\contentsline {subsection}{\numberline {5.1}Инициализация приложения}{75}{subsection.E.1}%
+\contentsline {subsection}{\numberline {5.2}Handler Layer}{76}{subsection.E.2}%
+\contentsline {subsection}{\numberline {5.3}Service Layer}{77}{subsection.E.3}%
+\contentsline {subsection}{\numberline {5.4}Repository Layer с транзакциями}{78}{subsection.E.4}%
+\contentsline {section}{\numberline {\CYRE }Recommendation Service Implementation (Python)}{80}{appendix.F}%
+\contentsline {subsection}{\numberline {6.1}Инициализация приложения и загрузка модели}{80}{subsection.F.1}%
+\contentsline {subsection}{\numberline {6.2}Семантический поиск квестов}{81}{subsection.F.2}%
+\contentsline {subsection}{\numberline {6.3}Рекомендация квестов на основе профиля пользователя}{82}{subsection.F.3}%
+\contentsline {section}{\numberline {\CYRZH }Frontend Implementation (JavaScript)}{85}{appendix.G}%
+\contentsline {subsection}{\numberline {7.1}Модуль работы с API}{85}{subsection.G.1}%
+\contentsline {subsection}{\numberline {7.2}Модуль управления квестами}{86}{subsection.G.2}%
+\contentsline {subsection}{\numberline {7.3}Модуль семантического поиска}{87}{subsection.G.3}%
+\contentsline {section}{\numberline {\CYRZ }Recommendation Service API Testing Script}{89}{appendix.H}%
+\contentsfinish 
