@@ -2048,7 +2048,7 @@
                                         <p class="task-description">${task.description}</p>
                                         <div class="task-meta">
                                             <span class="task-difficulty">
-                                                <span class="difficulty-stars">${'★'.repeat(task.difficulty)}${'☆'.repeat(3 - task.difficulty)}</span>
+                                                <span class="difficulty-stars">${'★'.repeat(task.difficulty)}${'☆'.repeat(Math.max(0, 5 - task.difficulty))}</span>
                                             </span>
                                             <span class="task-reward">
                                                 <span class="xp-reward">${task.base_xp_reward} XP</span>
