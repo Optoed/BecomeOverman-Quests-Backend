@@ -2926,7 +2926,6 @@
             <div class="card">
                 <h4>${quest.title || 'Без названия'}</h4>
                 <p>${quest.description || 'Описание отсутствует'}</p>
-                <p><strong>Прогресс:</strong> сколько-то /${quest.tasks_count || 0} задач выполнено</p>
                 ${quest.status === 'started' ?
                         `<button class="btn btn-info" onclick="showQuestTasks(${quest.id}, '${quest.title}')">Показать задачи</button>` :
                         `<button class="btn btn-success" onclick="startQuest(${quest.id}, '${quest.title}')">Начать</button>`
