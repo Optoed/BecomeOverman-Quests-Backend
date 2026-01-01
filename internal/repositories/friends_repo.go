@@ -7,28 +7,51 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var (
+	ErrAlreadyFriends = errors.New("Эти пользователи уже друзья")
+)
+
 func (r *UserRepository) AddFriend(userID, friendID int) error {
-	// Проверяем, что пользователь существует
-	var userExists bool
-	err := r.db.Get(&userExists, `
-		SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`, friendID)
+	exists, err := r.isUserExists(friendID)
 	if err != nil {
 		return err
 	}
-	if !userExists {
-		return errors.New("user not found")
+	if !exists {
+		return errors.New("Такого пользователя не существует")
 	}
 
-	// Проверяем, что дружба не существует
+	return r.addFriend(userID, friendID)
+}
+
+func (r *UserRepository) AddFriendbyName(userID int, friendName string) error {
+	friendID, err := r.getUserIdByUsername(friendName)
+	if err != nil {
+		return err
+	}
+
+	return r.addFriend(userID, friendID)
+}
+
+// Проверяем, что дружба не существует
+func (r *UserRepository) isFriends(userID, friendID int) (bool, error) {
 	var friendshipExists bool
-	err = r.db.Get(&friendshipExists, `
+	err := r.db.Get(&friendshipExists, `
 		SELECT EXISTS(SELECT 1 FROM friends WHERE user_id = $1 AND friend_id = $2)`,
 		userID, friendID)
 	if err != nil {
+		return false, err
+	}
+
+	return friendshipExists, nil
+}
+
+func (r *UserRepository) addFriend(userID, friendID int) error {
+	isFriends, err := r.isFriends(userID, friendID)
+	if err != nil {
 		return err
 	}
-	if friendshipExists {
-		return errors.New("friendship already exists")
+	if isFriends {
+		return ErrAlreadyFriends
 	}
 
 	_, err = r.db.Exec(`
