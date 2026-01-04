@@ -36,7 +36,7 @@ func (r *UserRepository) AddFriendbyName(userID int, friendName string) error {
 func (r *UserRepository) isFriends(userID, friendID int) (bool, error) {
 	var friendshipExists bool
 	err := r.db.Get(&friendshipExists, `
-		SELECT EXISTS(SELECT 1 FROM friends WHERE user_id = $1 AND friend_id = $2)`,
+		SELECT EXISTS(SELECT 1 FROM friends WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1))`,
 		userID, friendID)
 	if err != nil {
 		return false, err
@@ -59,6 +59,23 @@ func (r *UserRepository) addFriend(userID, friendID int) error {
 		VALUES ($1, $2, 'accepted')`,
 		userID, friendID)
 	return err
+}
+
+func (r *UserRepository) GetAllAcceptedFriends(userID int) ([]int, error) {
+	query := `
+		-- Получить все ID друзей (только ID)
+		SELECT 
+			CASE 
+				WHEN user_id = $1 THEN friend_id 
+				ELSE user_id 
+			END as friend_id
+		FROM friends 
+		WHERE (user_id = $1 OR friend_id = $1)
+		AND status = 'accepted';
+	  `
+	var friendsIDS []int
+	err := r.db.Select(&friendsIDS, query, userID)
+	return friendsIDS, err
 }
 
 func (r *UserRepository) GetFriends(userID int) ([]models.Friend, error) {

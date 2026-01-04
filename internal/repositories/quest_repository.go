@@ -318,6 +318,14 @@ func (r *QuestRepository) GetMyCompletedQuests(ctx context.Context, userID int) 
 	return quests, nil
 }
 
+func (r *QuestRepository) GetUserQuestIDs(userID int) ([]int, error) {
+	var ids []int
+	if err := r.db.Select(&ids, "SELECT quest_id FROM user_quests WHERE user_id = $1", userID); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
 // PurchaseQuest покупает квест для пользователя
 func (r *QuestRepository) PurchaseQuest(ctx context.Context, userID, questID int) error {
 	tx, err := r.db.BeginTxx(ctx, nil)

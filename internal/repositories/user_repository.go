@@ -4,6 +4,7 @@ import (
 	"BecomeOverMan/internal/models"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type UserRepository struct {
@@ -38,4 +39,18 @@ func (r *UserRepository) GetProfile(userID int) (models.User, error) {
 		return models.User{}, err
 	}
 	return user, nil
+}
+
+func (r *UserRepository) GetProfiles(userIDs []int) ([]models.UserProfile, error) {
+	var usersProfiles []models.UserProfile
+	query := `
+		SELECT id, username, email, xp_points, coin_balance, level, created_at 
+		FROM users WHERE id = ALL($1)
+		ORDER BY array_position($1, id)
+		`
+	err := r.db.Select(&usersProfiles, query, pq.Array(userIDs))
+	if err != nil {
+		return nil, err
+	}
+	return usersProfiles, nil
 }
