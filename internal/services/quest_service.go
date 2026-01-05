@@ -154,6 +154,7 @@ func (s *QuestService) SaveQuestToDB(quest *models.Quest, tasks []models.Task) (
 func (s *QuestService) SearchQuests(
 	ctx context.Context,
 	req models.RecommendationService_SearchQuest_Request,
+	userID int,
 ) (models.SearchQuestsResponse, error) {
 	// 1. Создаем URL
 	url := integrations.Recommendation_Service_BASE_URL + "/search"
@@ -192,8 +193,10 @@ func (s *QuestService) SearchQuests(
 		questsIDS[i] = result.ID
 	}
 
+	var questsWithDetails []models.Quest
+
 	// 8. Достаем квесты с деталями из БД (тут сразу и те что есть у юзера и те что еще не куплены)
-	questsWithDetails, err := s.questRepo.SearchQuestsWithDetailsByIDs(ctx, questsIDS)
+	questsWithDetails, err = s.questRepo.SearchQuestsWithDetailsByIDs(ctx, questsIDS)
 	if err != nil {
 		slog.ErrorContext(ctx, "ошибка получения квестов из БД с указанными ids во время поиска",
 			"error", err,

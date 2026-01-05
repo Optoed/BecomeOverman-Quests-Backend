@@ -250,8 +250,15 @@ func (h *QuestHandler) SearchQuests(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
+	req.Status = req.GetStatus() // default == "all"
 
-	quests, err := h.questService.SearchQuests(c.Request.Context(), req)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	quests, err := h.questService.SearchQuests(c.Request.Context(), req, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -262,10 +269,14 @@ func (h *QuestHandler) SearchQuests(c *gin.Context) {
 
 // Рекомендация друзей с помощью Recommendation Service
 func (h *QuestHandler) RecommendFriends(c *gin.Context) {
-	var req models.RecommendationService_RecommendUsers_Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+
+	req := models.RecommendationService_RecommendUsers_Request{
+		UserID: userID,
 	}
 
 	resp, err := h.questService.RecommendFriends(c.Request.Context(), req)
@@ -300,8 +311,6 @@ func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService
 
 	questGroup := router.Group("/quests")
 
-	questGroup.POST("/search", handler.SearchQuests)
-
 	questGroup.Use(middleware.JWTAuthMiddleware())
 	{
 		questGroup.GET("/:questID/details", handler.GetQuestDetails)
@@ -320,6 +329,8 @@ func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService
 		questGroup.POST("/generate", handler.GenerateAIQuest)
 		questGroup.POST("/schedule", handler.GenerateScheduleByAI)
 
+		// recommendation service
+		questGroup.POST("/search", handler.SearchQuests)
 		questGroup.POST("/recommend/friends", handler.RecommendFriends)
 		questGroup.POST("/recommend", handler.RecommendQuests)
 	}

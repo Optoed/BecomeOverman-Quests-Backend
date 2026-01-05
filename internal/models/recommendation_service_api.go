@@ -5,6 +5,15 @@ type RecommendationService_SearchQuest_Request struct {
 	Query    string `json:"query" binding:"required"`
 	TopK     int    `json:"top_k,omitempty" binding:"omitempty,numeric,min=1,max=100"`
 	Category string `json:"category,omitempty"`
+	Status   string `json:"status,omitempty" binding:"omitempty,oneof=all my available not_available"`
+}
+
+// Метод для получения статуса с дефолтным значением
+func (r *RecommendationService_SearchQuest_Request) GetStatus() string {
+	if r.Status == "" {
+		return "all"
+	}
+	return r.Status
 }
 
 type RecommendationService_SearchQuest_Result struct {

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Поиск квестов | Become Overman</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --text: #0f172a;
+            --muted: #6b7280;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+            --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --radius-lg: 18px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #e0f2fe 0, #f8fafc 45%, #eef2ff 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px 32px;
+        }
+
+        .search-shell {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            margin-top: 40px;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+
+        .logo span:first-child {
+            color: #0f172a;
+        }
+
+        .logo span:last-child {
+            color: #2563eb;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .search-card {
+            background: var(--card-bg);
+            border-radius: 999px;
+            padding: 10px 16px;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-input-wrapper span {
+            font-size: 20px;
+        }
+
+        #search-query {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px 4px;
+        }
+
+        #search-query::placeholder {
+            color: #9ca3af;
+        }
+
+        .search-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            font-size: 13px;
+            background: #f9fafb;
+            color: var(--muted);
+        }
+
+        .btn-primary {
+            border-radius: 999px;
+            border: none;
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--primary);
+            color: #ffffff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+            transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.45);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .helper-text {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .results {
+            margin-top: 28px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .result-meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .score-pill {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0 10px;
+            font-size: 12px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .badge.secondary {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .badge.difficulty-1 {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.difficulty-2 {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .badge.difficulty-3,
+        .badge.difficulty-4 {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .description {
+            font-size: 13px;
+            color: #111827;
+            margin: 8px 0 10px;
+        }
+
+        .reward-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .tasks {
+            border-top: 1px dashed var(--border);
+            padding-top: 10px;
+            margin-top: 6px;
+        }
+
+        .task-item {
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .task-desc {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .task-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .status-pill {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .empty-state,
+        .error-state {
+            text-align: center;
+            padding: 24px 16px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .top-bar {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .top-bar a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .top-bar a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .search-shell {
+                margin-top: 24px;
+            }
+
+            .search-card {
+                border-radius: 16px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-controls {
+                justify-content: space-between;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="top-bar">
+            <div>🔍 Поиск квестов (beta)</div>
+            <div>
+                <a href="index.html">← Вернуться в приложение</a>
+            </div>
+        </div>
+
+        <div class="search-shell">
+            <div class="search-header">
+                <div class="logo">
+                    <span>Become</span><span>Overman</span>
+                </div>
+                <div class="subtitle">Поиск квестов по описанию, цели или настроению — как в Google, но для челленджей</div>
+            </div>
+
+            <form id="search-form">
+                <div class="search-card">
+                    <div class="search-input-wrapper">
+                        <span>🔍</span>
+                        <input id="search-query" type="text" placeholder="Например: 'хочу спорт челлендж', 'развитие силы воли', 'совместный квест с другом'">
+                    </div>
+                    <div class="search-controls">
+                        <select id="search-status">
+                            <option value="all">Все квесты</option>
+                            <option value="available">Доступные</option>
+                            <option value="my">Мои</option>
+                            <option value="not_available">Пока недоступные</option>
+                        </select>
+                        <button id="search-button" type="submit" class="btn-primary">
+                            <span>Искать</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="helper-text">
+                Попробуйте описать желаемый квест естественным языком — AI подберёт наиболее подходящие варианты.
+            </div>
+
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token') || null;
+
+        async function apiCall(url, options = {}) {
+            const headers = options.headers || {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            headers['Content-Type'] = 'application/json';
+
+            try {
+                const response = await fetch(`http://localhost:8080${url}`, {
+                    ...options,
+                    headers
+                });
+
+                const contentType = response.headers.get('content-type');
+                let data = {};
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                }
+
+                return { success: response.ok, data };
+            } catch (error) {
+                console.error('API call error:', error);
+                return { success: false, data: { error: 'Network error: ' + error.message } };
+            }
+        }
+
+        function renderEmptyState(message) {
+            const container = document.getElementById('results');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 24px; margin-bottom: 8px;">🤔</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+
+        function difficultyBadgeClass(difficulty) {
+            if (difficulty <= 1) return 'difficulty-1';
+            if (difficulty === 2) return 'difficulty-2';
+            return 'difficulty-3';
+        }
+
+        function formatHours(hours) {
+            if (!hours || hours <= 0) return 'Без ограничения';
+            if (hours < 24) return `${hours} ч`;
+            const days = Math.round(hours / 24);
+            return `${days} дн`;
+        }
+
+        function renderResults(results, query) {
+            const container = document.getElementById('results');
+
+            if (!results || results.length === 0) {
+                renderEmptyState('Ничего не найдено. Попробуйте переформулировать запрос или задать более общую формулировку.');
+                return;
+            }
+
+            const total = results.length;
+            container.innerHTML = `
+                <div class="result-meta">
+                    Найдено квестов: ${total} • Запрос: "<strong>${query}</strong>"
+                </div>
+            ` + results.map(item => {
+                const quest = item.quest || {};
+                const tasks = quest.tasks || [];
+                const similarity = item.similarity_score ? (item.similarity_score * 100).toFixed(1) : null;
+
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">${quest.title || 'Без названия'}</h3>
+                                <div class="card-subtitle">
+                                    ID: ${quest.id ?? '—'} • Категория: ${quest.category || '—'} • ${quest.rarity || 'common'}
+                                </div>
+                            </div>
+                            ${similarity ? `<div class="score-pill">Релевантность: ${similarity}%</div>` : ''}
+                        </div>
+
+                        <div class="badge-row">
+                            ${quest.category ? `<span class="badge">📁 ${quest.category}</span>` : ''}
+                            ${quest.difficulty !== undefined ? `<span class="badge ${difficultyBadgeClass(quest.difficulty)}">⚙️ Сложность: ${quest.difficulty}</span>` : ''}
+                            ${quest.is_sequential ? `<span class="badge secondary">🔗 Последовательный</span>` : `<span class="badge secondary">🔀 В свободном порядке</span>`}
+                            ${quest.tasks_count ? `<span class="badge secondary">✅ Заданий: ${quest.tasks_count}</span>` : ''}
+                        </div>
+
+                        ${quest.description ? `<div class="description">${quest.description}</div>` : ''}
+
+                        <div class="reward-row">
+                            ${quest.price !== undefined ? `<span>💰 Цена: ${quest.price} монет</span>` : ''}
+                            ${(quest.reward_coin !== undefined || quest.reward_xp !== undefined) ? `<span>🏆 Награда: ${quest.reward_coin || 0} монет, ${quest.reward_xp || 0} XP</span>` : ''}
+                            ${quest.time_limit_hours !== undefined ? `<span>⏱ Лимит: ${formatHours(quest.time_limit_hours)}</span>` : ''}
+                        </div>
+
+                        ${tasks.length ? `
+                            <div class="tasks">
+                                <div style="font-size: 12px; font-weight: 600; margin-bottom: 6px;">📋 Задачи квеста:</div>
+                                ${tasks.map((task, index) => `
+                                    <div class="task-item">
+                                        <div class="task-title">${index + 1}. ${task.title || 'Без названия'}</div>
+                                        ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+                                        <div class="task-meta">
+                                            ${task.category ? `Категория: ${task.category} • ` : ''}
+                                            Сложность: ${task.difficulty ?? '—'} •
+                                            Награда: ${task.base_xp_reward || 0} XP, ${task.base_coin_reward || 0} монет
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div class="actions">
+                            <button class="btn-outline" onclick="openInApp(${quest.id})">
+                                Открыть в основном приложении
+                            </button>
+                            <span class="status-pill">ID квеста: ${quest.id ?? '—'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openInApp(questId) {
+            if (!questId) return;
+            // Сохраняем выбранный квест в localStorage, чтобы index.html мог открыть детали
+            localStorage.setItem('search_selected_quest_id', String(questId));
+            window.location.href = 'index.html';
+        }
+
+        async function performSearch(query, status) {
+            const resultsContainer = document.getElementById('results');
+            const button = document.getElementById('search-button');
+
+            if (!token) {
+                resultsContainer.innerHTML = `
+                    <div class="error-state">
+                        <div style="font-size: 22px; margin-bottom: 8px;">🔑 Нужна авторизация</div>
+                        <div>Сначала войдите в систему на странице приложения (index.html), затем вернитесь к поиску.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 20px; margin-bottom: 6px;">⏳</div>
+                    <div>Ищем подходящие квесты по вашему запросу...</div>
+                </div>
+            `;
+            button.disabled = true;
+
+            const body = {
+                query: query,
+                status: status || 'all',
+                top_k: 10
+            };
+
+            const result = await apiCall('/quests/search', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+
+            button.disabled = false;
+
+            if (!result.success) {
+                resultsContainer.innerHTML = `
+                    <div class="error-state">
+                        <div style="font-size: 22px; margin-bottom: 8px;">❌ Ошибка поиска</div>
+                        <div>${result.data?.error || 'Неизвестная ошибка. Попробуйте позже.'}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const data = result.data;
+            // Ожидаем массив [{ quest: {...}, similarity_score: number }, ...]
+            if (!Array.isArray(data)) {
+                resultsContainer.innerHTML = `
+                    <div class="error-state">
+                        <div style="font-size: 22px; margin-bottom: 8px;">⚠️ Неожиданный ответ</div>
+                        <div>Сервис поиска вернул данные в неожиданном формате.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            renderResults(data, query);
+        }
+
+        document.getElementById('search-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const queryInput = document.getElementById('search-query');
+            const statusSelect = document.getElementById('search-status');
+            const query = queryInput.value.trim();
+
+            if (!query) {
+                renderEmptyState('Введите текст запроса для поиска квестов.');
+                return;
+            }
+
+            performSearch(query, statusSelect.value);
+        });
+
+        // Фокус в строку поиска при загрузке
+        window.addEventListener('load', () => {
+            const queryInput = document.getElementById('search-query');
+            queryInput.focus();
+        });
+    </script>
+</body>
+
+</html>
+
