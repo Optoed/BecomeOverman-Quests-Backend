@@ -511,14 +511,16 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 	defer tx.Rollback()
 
 	// Проверяем, что такой квест и задача в нем - существуют и еще не выполнены
+	// Квест должен быть в статусе 'started' (или 'purchased' - для обратной совместимости)
+	// Задача должна быть в статусе 'active' или 'not_started' (если квест еще не стартован, но куплен)
 	var exists bool
 	err = tx.GetContext(ctx, &exists, `
 		SELECT EXISTS (
-			SELECT 1 FROM user_quests WHERE user_id = $1 AND quest_id = $2 AND status = 'started'
+			SELECT 1 FROM user_quests WHERE user_id = $1 AND quest_id = $2 AND status IN ('started', 'purchased')
 		) AND EXISTS (
 			SELECT 1 FROM quest_tasks WHERE quest_id = $2 AND task_id = $3
 		) AND EXISTS (
-			SELECT 1 FROM user_tasks WHERE user_id = $1 AND quest_id = $2 AND task_id = $3 AND status = 'active'
+			SELECT 1 FROM user_tasks WHERE user_id = $1 AND quest_id = $2 AND task_id = $3 AND status IN ('active', 'not_started')
 		)
 		`, userID, questID, taskID,
 	)
@@ -541,6 +543,46 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 		return err
 	}
 
+	// Проверяем статус квеста - если 'purchased', автоматически стартуем его
+	var questStatus string
+	err = tx.GetContext(ctx, &questStatus, `
+		SELECT status FROM user_quests WHERE user_id = $1 AND quest_id = $2
+	`, userID, questID)
+	if err != nil {
+		return err
+	}
+
+	// Если квест куплен, но не стартован - стартуем его
+	if questStatus == "purchased" {
+		var timeLimitHours int
+		err = tx.GetContext(ctx, &timeLimitHours,
+			"SELECT time_limit_hours FROM quests WHERE id = $1", questID)
+		if err != nil {
+			return err
+		}
+
+		expiresAt := time.Now().Add(time.Duration(timeLimitHours) * time.Hour)
+
+		_, err = tx.ExecContext(ctx, `
+			UPDATE user_quests 
+			SET status = 'started', started_at = NOW(), expires_at = $1
+			WHERE user_id = $2 AND quest_id = $3 AND status = 'purchased'`,
+			expiresAt, userID, questID)
+		if err != nil {
+			return err
+		}
+
+		// Активируем все задачи квеста
+		_, err = tx.ExecContext(ctx, `
+			UPDATE user_tasks
+			SET status = 'active'
+			WHERE user_id = $1 AND quest_id = $2 AND status = 'not_started'`,
+			userID, questID)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Начисляем награду пользователю сразу
 	err = r.addXPAndCoinsWithLevelUp(tx, ctx, userID, baseXpReward, baseCoinReward)
 	if err != nil {
@@ -548,6 +590,7 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 	}
 
 	// обновляем статус задачи, сохраняем награду в user_tasks
+	// Принимаем задачи со статусом 'active' или 'not_started'
 	_, err = tx.ExecContext(ctx, `
         UPDATE user_tasks ut
 		SET
@@ -559,7 +602,7 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 		WHERE ut.user_id = $1
           AND ut.quest_id = $2
           AND ut.task_id = $3
-          AND ut.status = 'active'
+          AND ut.status IN ('active', 'not_started')
           AND t.id = ut.task_id
 		`, userID, questID, taskID, baseXpReward, baseCoinReward)
 	if err != nil {
