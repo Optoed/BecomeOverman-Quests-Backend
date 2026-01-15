@@ -1,0 +1,35 @@
+graph TB
+    subgraph Frontend["Frontend Layer"]
+        FE[HTML/JS Frontend<br/>Single Page Application]
+    end
+    
+    subgraph ML["ML Service Layer"]
+        RS[Recommendation Service<br/>Python FastAPI<br/>Port 8000]
+        BERT[BERT Model<br/>sentence-transformers]
+        SQLITE[(SQLite<br/>Embeddings Storage)]
+        RS --- BERT
+        RS --- SQLITE
+    end
+    
+    subgraph Backend["Backend Layer"]
+        BE[Go Backend<br/>Gin Framework<br/>Port 8080]
+        PG[(PostgreSQL<br/>Main Database)]
+        BE --- PG
+    end
+    
+    subgraph External["External Services"]
+        LLM[LLM API<br/>Intelligence.IO<br/>KIMI-2]
+    end
+    
+    FE -->|HTTP REST API<br/>JWT Auth| BE
+    BE -->|HTTP REST API<br/>Search/Recommend| RS
+    BE -->|HTTP API<br/>Quest Generation| LLM
+    BE -.->|Sync Data| RS
+    
+    style FE fill:#e1f5ff,stroke:#4a90e2,stroke-width:2px
+    style BE fill:#fff4e1,stroke:#f5a623,stroke-width:2px
+    style RS fill:#ffe1f5,stroke:#d0021b,stroke-width:2px
+    style PG fill:#e1ffe1,stroke:#7ed321,stroke-width:2px
+    style SQLITE fill:#ffe1e1,stroke:#bd10e0,stroke-width:2px
+    style BERT fill:#f5e1ff,stroke:#9013fe,stroke-width:2px
+    style LLM fill:#ffffe1,stroke:#f8e71c,stroke-width:2px

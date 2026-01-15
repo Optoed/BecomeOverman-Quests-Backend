@@ -1,0 +1,85 @@
+graph TB
+    %% Client Layer - top center
+    HTTP[HTTP Client<br/>Frontend/Browser]
+    
+    subgraph Handler["Handler Layer (handlers/)"]
+        UserH[UserHandler<br/>Register, Login, Profile]
+        QuestH[QuestHandler<br/>Quests, Tasks, AI]
+        TechH[TechHandler<br/>Health Checks]
+        Middleware[JWT Middleware<br/>Authentication]
+    end
+    
+    subgraph Service["Service Layer (services/)"]
+        UserS[UserService<br/>Business Logic]
+        QuestS[QuestService<br/>Business Logic]
+        TechS[TechService<br/>Health Checks]
+        LLMClient[LLM Client<br/>Intelligence.IO API]
+        RecClient[Recommendation Client<br/>HTTP Client]
+    end
+    
+    subgraph Repository["Repository Layer (repositories/)"]
+        UserR[UserRepository<br/>DB Operations]
+        QuestR[QuestRepository<br/>DB Operations]
+        TechR[TechRepository<br/>DB Operations]
+    end
+    
+    subgraph Model["Model Layer (models/)"]
+        UserM[User Models<br/>Structs, Validation]
+        QuestM[Quest Models<br/>Structs, Validation]
+    end
+    
+    subgraph Database["Database Layer"]
+        PG[(PostgreSQL<br/>Main Database)]
+    end
+    
+    subgraph External["External Services"]
+        LLM[LLM API<br/>Intelligence.IO<br/>KIMI-2]
+        RS[Recommendation Service<br/>Python FastAPI]
+    end
+    
+    %% Client to Handler - centered connections from top
+    HTTP -->|HTTP Requests| UserH
+    HTTP -->|HTTP Requests| QuestH
+    HTTP -->|HTTP Requests| TechH
+    
+    %% Middleware connections
+    Middleware -.->|Validates| UserH
+    Middleware -.->|Validates| QuestH
+    Middleware -.->|Validates| TechH
+    
+    %% Handler to Service
+    UserH -->|Calls| UserS
+    QuestH -->|Calls| QuestS
+    TechH -->|Calls| TechS
+    QuestH -->|Calls| LLMClient
+    QuestH -->|Calls| RecClient
+    
+    %% Service to Repository
+    UserS -->|Uses| UserR
+    QuestS -->|Uses| QuestR
+    TechS -->|Uses| TechR
+    
+    %% Repository to Model
+    UserR -->|Maps to| UserM
+    QuestR -->|Maps to| QuestM
+    
+    %% Repository to Database
+    UserR -->|Queries| PG
+    QuestR -->|Queries| PG
+    TechR -->|Queries| PG
+    
+    %% Service to External
+    LLMClient -->|HTTP API| LLM
+    RecClient -->|HTTP REST API| RS
+    
+    %% Database to Model (dashed)
+    PG -.->|Stores| UserM
+    PG -.->|Stores| QuestM
+    
+    style Handler fill:#e1f5ff,stroke:#4a90e2,stroke-width:2px
+    style Service fill:#fff4e1,stroke:#f5a623,stroke-width:2px
+    style Repository fill:#ffe1f5,stroke:#d0021b,stroke-width:2px
+    style Model fill:#e1ffe1,stroke:#7ed321,stroke-width:2px
+    style Database fill:#f5e1ff,stroke:#9013fe,stroke-width:2px
+    style External fill:#ffffe1,stroke:#f8e71c,stroke-width:2px
+    style HTTP fill:#f0f0f0,stroke:#666666,stroke-width:2px

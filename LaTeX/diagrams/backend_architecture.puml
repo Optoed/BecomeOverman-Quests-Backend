@@ -1,0 +1,88 @@
+@startuml Backend Architecture
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+package "Client Layer" #E1F5FF {
+    component [HTTP Client\nFrontend/Browser] as HTTP
+}
+
+package "Handler Layer (handlers/)" #E1F5FF {
+    component [UserHandler\nRegister, Login, Profile] as UserH
+    component [QuestHandler\nQuests, Tasks, AI Generation] as QuestH
+    component [TechHandler\nHealth Checks] as TechH
+    component [JWT Middleware\nAuthentication] as Middleware
+}
+
+package "Service Layer (services/)" #FFF4E1 {
+    component [UserService\nBusiness Logic] as UserS
+    component [QuestService\nBusiness Logic] as QuestS
+    component [TechService\nHealth Checks] as TechS
+    component [LLM Client\nIntelligence.IO API] as LLMClient
+    component [Recommendation Client\nHTTP Client] as RecClient
+}
+
+package "Repository Layer (repositories/)" #FFE1F5 {
+    component [UserRepository\nDB Operations] as UserR
+    component [QuestRepository\nDB Operations] as QuestR
+    component [TechRepository\nDB Operations] as TechR
+}
+
+package "Model Layer (models/)" #E1FFE1 {
+    component [User Models\nStructs, Validation] as UserM
+    component [Quest Models\nStructs, Validation] as QuestM
+}
+
+database "Database Layer" #F5E1FF {
+    database "PostgreSQL\nMain Database" as PG
+}
+
+cloud "External Services" #FFFFE1 {
+    component [LLM API\nIntelligence.IO\nKIMI-2] as LLM
+    component [Recommendation Service\nPython FastAPI] as RS
+}
+
+' Client to Handler connections
+HTTP -->|"HTTP Requests"| UserH
+HTTP -->|"HTTP Requests"| QuestH
+HTTP -->|"HTTP Requests"| TechH
+
+' Handler to Middleware connections
+UserH ..>|"Uses"| Middleware
+QuestH ..>|"Uses"| Middleware
+TechH ..>|"Uses"| Middleware
+Middleware ..>|"Validates"| UserH
+Middleware ..>|"Validates"| QuestH
+Middleware ..>|"Validates"| TechH
+
+' Handler to Service connections
+UserH -->|"Calls"| UserS
+QuestH -->|"Calls"| QuestS
+TechH -->|"Calls"| TechS
+QuestH -->|"Calls"| LLMClient
+QuestH -->|"Calls"| RecClient
+
+' Service to Repository connections
+UserS -->|"Uses"| UserR
+QuestS -->|"Uses"| QuestR
+TechS -->|"Uses"| TechR
+
+' Repository to Model connections
+UserR -->|"Maps to"| UserM
+QuestR -->|"Maps to"| QuestM
+
+' Repository to Database connections
+UserR -->|"Queries"| PG
+QuestR -->|"Queries"| PG
+TechR -->|"Queries"| PG
+
+' Service to External Services connections
+LLMClient -->|"HTTP API"| LLM
+RecClient -->|"HTTP REST API"| RS
+
+' Database to Model connection
+PG ..>|"Stores"| UserM
+PG ..>|"Stores"| QuestM
+
+@enduml

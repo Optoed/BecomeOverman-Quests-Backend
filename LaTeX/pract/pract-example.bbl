@@ -1,0 +1,226 @@
+\begin{thebibliography}{10}
+\def\selectlanguageifdefined#1{
+\expandafter\ifx\csname date#1\endcsname\relax
+\else\language\csname l@#1\endcsname\fi}
+\ifx\undefined\url\def\url#1{{\small #1}}\else\fi
+\ifx\undefined\BibAuthor\def\BibAuthor#1{\emph{#1}}\else\fi
+\ifx\undefined\BibTitle\def\BibTitle#1{#1}\else\fi
+\ifx\undefined\BibUrl\def\BibUrl#1{\url{#1}}\else\fi
+\ifx\undefined\BibAnnote\def\BibAnnote#1{}\else\fi
+\ifx\undefined\BibSection\def\BibSection#1#2#3{}\else\fi
+
+\bibitem{arch1}
+\selectlanguageifdefined{english}
+\BibTitle{The architecture of open source applications
+  [{Э}лектронный ресурс]}. "---
+\newblock URL:~\url{https://aosabook.org/en/index.html} (Дата
+  обращения 18.11.2025). Загл. с экр. Яз. Англ.
+
+\bibitem{collaborative_filtering_sarwar}
+\selectlanguageifdefined{english}
+\BibAuthor{Sarwar,~B.} \BibTitle{Item-based collaborative filtering
+  recommendation algorithms}~/ B.~Sarwar, G.~Karypis, J.~Konstan, J.~Riedl~//
+  \emph{Proceedings of the 10th International Conference on World Wide Web}.
+  "---
+\newblock 2001. "---
+\newblock Pp.~285--295. "---
+\newblock URL:~\url{https://doi.org/10.1145/371920.372071} (Дата
+  обращения: 09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{recommender_handbook}
+\selectlanguageifdefined{english}
+\BibAuthor{Ricci,~F.} \BibTitle{Recommender Systems Handbook}~/ F.~Ricci,
+  L.~Rokach, B.~Shapira. "---
+\newblock 2nd edition. "---
+\newblock New York: Springer, 2015.
+
+\bibitem{tfidf_original}
+\selectlanguageifdefined{english}
+\BibAuthor{Salton,~G.} \BibTitle{Term-weighting approaches in automatic text
+  retrieval}~/ G.~Salton, C.~Buckley~// \emph{Information Processing \&
+  Management}. "---
+\newblock 1988. "---
+\newblock Vol.~24, no.~5. "---
+\newblock Pp.~513--523.
+
+\bibitem{tfidf_modern}
+\selectlanguageifdefined{english}
+\BibAuthor{Ramos,~J.} \BibTitle{Using tf-idf to determine word relevance in
+  document queries}~/ J.~Ramos~// \emph{Proceedings of the First Instructional
+  Conference on Machine Learning}. "---
+\newblock 2003. "---
+\newblock URL:~\url{https://www.cs.unm.edu/~pdevineni/papers/ramos.pdf}
+  (Дата обращения: 09.01.2026). Загл. с экр. Яз.
+  Англ.
+
+\bibitem{transformer_attention}
+\selectlanguageifdefined{english}
+\BibTitle{Attention is all you need}~/ A.~Vaswani, N.~Shazeer, N.~Parmar,
+  J.~Uszkoreit, L.~Jones, A.~N. Gomez, L.~Kaiser, I.~Polosukhin~//
+  \emph{Advances in Neural Information Processing Systems}. "---
+\newblock 2017. "---
+\newblock Vol.~30. "---
+\newblock URL:~\url{https://arxiv.org/abs/1706.03762} (Дата
+  обращения: 09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{bert_original}
+\selectlanguageifdefined{english}
+\BibAuthor{Devlin,~J.} \BibTitle{Bert: Pre-training of deep bidirectional
+  transformers for language understanding}~/ J.~Devlin, M.-W. Chang, K.~Lee,
+  K.~Toutanova~// \emph{arXiv preprint arXiv:1810.04805}. "---
+\newblock 2018. "---
+\newblock URL:~\url{https://arxiv.org/abs/1810.04805} (Дата
+  обращения: 09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{bert_semantic_search}
+\selectlanguageifdefined{english}
+\BibAuthor{Reimers,~N.} \BibTitle{Sentence-bert: Sentence embeddings using
+  siamese bert-networks}~/ N.~Reimers, I.~Gurevych~// \emph{Proceedings of the
+  2019 Conference on Empirical Methods in Natural Language Processing}. "---
+\newblock 2019. "---
+\newblock URL:~\url{https://arxiv.org/abs/1908.10084} (Дата
+  обращения: 09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{microservices_richardson}
+\selectlanguageifdefined{english}
+\BibAuthor{Richardson,~C.} \BibTitle{Microservices Patterns: With Examples in
+  Java}~/ C.~Richardson. "---
+\newblock Shelter Island: Manning Publications, 2018.
+
+\bibitem{microservices_martin}
+\selectlanguageifdefined{english}
+\BibAuthor{Fowler,~M.} \BibTitle{Microservices [{Э}лектронный
+  ресурс]}. "---
+\newblock URL:~\url{https://martinfowler.com/articles/microservices.html}
+  (Дата обращения: 09.01.2026). Загл. с экр. Яз.
+  Англ.
+
+\bibitem{fastapi_docs}
+\selectlanguageifdefined{english}
+\BibTitle{Fastapi documentation [{Э}лектронный ресурс]}. "---
+\newblock URL:~\url{https://fastapi.tiangolo.com/} (Дата
+  обращения: 09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{python_docs}
+\selectlanguageifdefined{english}
+\BibTitle{Python documentation [{Э}лектронный ресурс]}. "---
+\newblock URL:~\url{https://docs.python.org/3/} (Дата обращения:
+  09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{fastapi_ramirez}
+\selectlanguageifdefined{english}
+\BibAuthor{Ramírez,~B.} \BibTitle{FastAPI Modern Python Web Development}~/
+  B.~Ramírez. "---
+\newblock Birmingham: Packt Publishing, 2021.
+
+\bibitem{ml_systems_huyen}
+\selectlanguageifdefined{english}
+\BibAuthor{Huyen,~C.} \BibTitle{Designing Machine Learning Systems: An
+  Iterative Process for Production-Ready Applications}~/ C.~Huyen. "---
+\newblock Sebastopol: O'Reilly Media, 2022.
+
+\bibitem{amazon_recommender}
+\selectlanguageifdefined{english}
+\BibAuthor{Linden,~G.} \BibTitle{Amazon.com recommendations: Item-to-item
+  collaborative filtering}~/ G.~Linden, B.~Smith, J.~York~// \emph{IEEE
+  Internet Computing}. "---
+\newblock 2003. "---
+\newblock Vol.~7, no.~1. "---
+\newblock Pp.~76--80.
+
+\bibitem{netflix_recommender}
+\selectlanguageifdefined{english}
+\BibAuthor{Gomez-Uribe,~C.~A.} \BibTitle{The netflix recommender system:
+  Algorithms, business value, and innovation}~/ C.~A. Gomez-Uribe, N.~Hunt~//
+  \emph{ACM Transactions on Management Information Systems}. "---
+\newblock 2016. "---
+\newblock Vol.~6, no.~4. "---
+\newblock Pp.~13:1--13:19.
+
+\bibitem{sentence_transformers}
+\selectlanguageifdefined{english}
+\BibTitle{Sentence transformers documentation [{Э}лектронный
+  ресурс]}. "---
+\newblock URL:~\url{https://www.sbert.net/} (Дата обращения:
+  09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{api1}
+\selectlanguageifdefined{english}
+\BibTitle{Лучшие практики rest api [{Э}лектронный
+  ресурс]}. "---
+\newblock URL:
+  \url{https://learn.microsoft.com/ru-ru/azure/architecture/best-practices/api-design}
+  (Дата обращения 21.11.2025). Загл. с экр. Яз. Рус.
+
+\bibitem{go_backend}
+\selectlanguageifdefined{english}
+\BibTitle{Как написать производительный и
+  безопасный backend на go [{Э}лектронный
+  ресурс]}. "---
+\newblock
+  URL:~\url{https://tproger.ru/articles/kak-napisat-proizvoditelnyj-i-bezopasnyj-backend-na-go}
+  (Дата обращения: 20.11.2025) Загл. с экр. Яз рус.
+
+\bibitem{go_practice}
+\selectlanguageifdefined{russian}
+\BibAuthor{Батчер,~�.~�.} \BibTitle{Go на практике}~/ �.~�.
+  Батчер, �.~�. Фарина. "---
+\newblock ДМК Пресс, 2017.
+
+\bibitem{db1}
+\selectlanguageifdefined{russian}
+\BibAuthor{Моргунов,~�.} \BibTitle{PostgreSQL.
+  Профессиональный SQL}~/ �.~Моргунов. "---
+\newblock Москва: ДМК Пресс, 2025.
+
+\bibitem{sqlite_docs}
+\selectlanguageifdefined{english}
+\BibTitle{Sqlite documentation [{Э}лектронный ресурс]}. "---
+\newblock URL:~\url{https://www.sqlite.org/docs.html} (Дата
+  обращения: 09.01.2026). Загл. с экр. Яз. Англ.
+
+\bibitem{html2}
+\selectlanguageifdefined{russian}
+\BibAuthor{Кириченко,~�.} \BibTitle{HTML5 + CSS3. Основы
+  современного WEB-дизайна}~/ �.~Кириченко,
+  �.~Хрусталев. "---
+\newblock СПб.: Наука и Техника, 2018.
+
+\bibitem{js2}
+\selectlanguageifdefined{russian}
+\BibAuthor{Кириченко,~�.} \BibTitle{JavaScript для
+  FrontEnd-разработчиков. Написание.
+  Тестирование. Развертывание}~/
+  �.~Кириченко. "---
+\newblock СПб.: Наука и Техника, 2020.
+
+\bibitem{bert_vs_tfidf_cogito}
+\selectlanguageifdefined{english}
+\BibAuthor{Sutriawan,~S.} \BibTitle{Cosine similarity-based evidences selection
+  for fact verification using sbert on the fever dataset}~/ S.~Sutriawan,
+  S.~Rustad, G.~F. Shidik, Pujiono~// \emph{Cogito}. "---
+\newblock 2024. "---
+\newblock
+  URL:~\url{https://cogito.unklab.ac.id/index.php/cogito/article/view/917/380}
+  (Дата обращения: 09.01.2026). Загл. с экр. Яз.
+  Англ.
+
+\bibitem{bert_vs_tfidf_iieta}
+\selectlanguageifdefined{english}
+\BibAuthor{Sutriawan,~S.} \BibTitle{Performance evaluation of text embedding
+  models for ambiguity classification in indonesian news corpus: A comparative
+  study of tf-idf, word2vec, fasttext bert, and gpt}~/ S.~Sutriawan, S.~Rustad,
+  G.~F. Shidik, Pujiono~// \emph{ISI}. "---
+\newblock 2025. "---
+\newblock
+  URL:~\url{https://www.iieta.org/journals/isi/paper/10.18280/isi.300606}
+  (Дата обращения: 09.01.2026). Загл. с экр. Яз.
+  Англ.
+
+\bibitem{db2}
+\selectlanguageifdefined{russian}
+\BibAuthor{Рогов,~�.} \BibTitle{PostgreSQL 17 изнутри}~/
+  �.~Рогов. "---
+\newblock Москва: ДМК Пресс, 2025.
+
+\end{thebibliography}
