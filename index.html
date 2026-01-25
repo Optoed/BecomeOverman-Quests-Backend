@@ -1601,7 +1601,6 @@
             <button class="tab" onclick="openTab('profile')"><span>👤 Профиль</span></button>
             <button class="tab" onclick="openTab('quests')"><span>🎯 Квесты</span></button>
             <button class="tab" onclick="openTab('ai-quests')"><span>🤖 AI Квесты</span></button>
-            <button class="tab" onclick="openTab('search-quests')"><span>🔍 Поиск квестов</span></button>
             <button class="tab" onclick="openTab('friends')"><span>👥 Друзья</span></button>
             <button class="tab" onclick="openTab('my-quests')"><span>📚 Мои квесты</span></button>
             <button class="tab" onclick="openTab('calendar')"><span>📅 Календарь</span></button>
@@ -1633,67 +1632,15 @@
             </div>
         </div>
 
-        <!-- Поиск квестов -->
-        <div id="search-quests" class="tab-content">
-            <h3>🔍 Поиск квестов (beta)</h3>
-
-            <div class="card" style="padding: 18px 16px;">
-                <form id="search-form" onsubmit="submitQuestSearch(event)">
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                        <div style="flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 20px;">🔍</span>
-                            <input id="search-query" type="text"
-                                placeholder="Например: 'спорт челлендж', 'развитие силы воли', 'совместный квест с другом'"
-                                style="flex: 1; padding: 10px; border-radius: 999px; border: 1px solid var(--gray-light);">
-                        </div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <!-- <select id="search-status"
-                                style="border-radius: 999px; padding: 8px 10px; border: 1px solid var(--gray-light); font-size: 13px;">
-                                <option value="all">Все квесты</option>
-                                <option value="available">Доступные</option>
-                                <option value="my">Мои</option>
-                                <option value="not_available">Недоступные</option>
-                            </select> -->
-                            <button id="search-button" type="submit" class="btn btn-primary">
-                                Искать
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                <p style="margin-top: 10px; font-size: 12px; color: var(--gray);">
-                    Опишите желаемый квест естественным языком — AI подберёт наиболее подходящие варианты.
-                </p>
-            </div>
-
-            <div id="search-results" style="margin-top: 20px;"></div>
-        </div>
-
         <!-- Квесты -->
         <div id="quests" class="tab-content">
             <!-- Доступные квесты к покупке -->
             <h3>🎯 Доступные к приобретению квесты</h3>
 
-            <div style="margin-bottom: 20px;">
-                <input type="text" id="search-available-quests" placeholder="🔍 Поиск по названию или описанию..."
-                    style="padding: 12px; width: 100%; border-radius: 12px; border: 2px solid var(--gray-light);">
-                <button class="btn btn-primary" onclick="searchAvailableQuests()"
-                    style="margin-top: 10px; width: 100%;">
-                    🔍 Искать
-                </button>
-            </div>
-
             <div id="quests-list"></div>
 
             <!-- Недоступные к приобретению  -->
             <h3>🏪 Откроются позже </h3>
-
-            <div style="margin-bottom: 20px;">
-                <input type="text" id="search-shop-quests" placeholder="🔍 Поиск в магазине квестов..."
-                    style="padding: 12px; width: 100%; border-radius: 12px; border: 2px solid var(--gray-light);">
-                <button class="btn btn-primary" onclick="searchShopQuests()" style="margin-top: 10px; width: 100%;">
-                    🔍 Искать
-                </button>
-            </div>
 
             <div id="quests-shop"></div>
 
@@ -1791,11 +1738,6 @@
         <!-- Мои квесты -->
         <div id="my-quests" class="tab-content">
             <h3>🔥 Активные квесты</h3>
-
-            <div style="margin-bottom: 20px;">
-                <input type="text" id="search-my-quests" placeholder="🔍 Поиск по моим квестам..."
-                    style="padding: 12px; width: 100%; border-radius: 12px; border: 2px solid var(--gray-light);">
-            </div>
 
             <div id="active-quests"></div>
 
@@ -2355,196 +2297,63 @@
             }
         }
 
-        // Квесты
+        // Квесты - храним данные для поиска
+        let cachedAvailableQuests = [];
+        let cachedShopQuests = [];
+
+        function renderAvailableQuests(quests) {
+            if (!quests || quests.length === 0) {
+                document.getElementById('quests-list').innerHTML = '<p>Нет доступных квестов</p>';
+                return;
+            }
+            document.getElementById('quests-list').innerHTML = quests.map(quest => `
+                <div class="card">
+                    <h4>${quest.title || 'Без названия'}</h4>
+                    <p>${quest.description || 'Описание отсутствует'}</p>
+                    <p>Цена: ${quest.price || 0} монет | Награда: ${quest.reward_coin || 0} монет, ${quest.reward_xp || 0} XP</p>
+                    <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
+                    <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Детали</button>
+                </div>
+            `).join('');
+        }
+
+        function renderShopQuests(quests) {
+            if (!quests || quests.length === 0) {
+                document.getElementById('quests-shop').innerHTML = '<p>Магазин квестов пуст</p>';
+                return;
+            }
+            document.getElementById('quests-shop').innerHTML = quests.map(quest => `
+                <div class="card">
+                    <h4>${quest.title || 'Без названия'}</h4>
+                    <p>${quest.description || 'Описание отсутствует'}</p>
+                    <p>Цена: ${quest.price || 0} монет</p>
+                    <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
+                    <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Детали</button>
+                </div>
+            `).join('');
+        }
+
         async function loadQuests() {
             const available = await apiCall('/quests/available');
             const shop = await apiCall('/quests/shop');
 
             if (available.success && available.data && Array.isArray(available.data)) {
-                document.getElementById('quests-list').innerHTML = available.data.map(quest => `
-                    <div class="card">
-                        <h4>${quest.title || 'Без названия'}</h4>
-                        <p>${quest.description || 'Описание отсутствует'}</p>
-                        <p>Цена: ${quest.price || 0} монет | Награда: ${quest.reward_coin || 0} монет, ${quest.reward_xp || 0} XP</p>
-                        <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
-                        <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Детали</button>
-                    </div>
-                `).join('');
+                cachedAvailableQuests = available.data;
+                renderAvailableQuests(available.data);
             } else {
+                cachedAvailableQuests = [];
                 document.getElementById('quests-list').innerHTML = '<p>Нет доступных квестов</p>';
             }
 
             if (shop.success && shop.data && Array.isArray(shop.data)) {
-                document.getElementById('quests-shop').innerHTML = shop.data.map(quest => `
-                    <div class="card">
-                        <h4>${quest.title || 'Без названия'}</h4>
-                        <p>${quest.description || 'Описание отсутствует'}</p>
-                        <p>Цена: ${quest.price || 0} монет</p>
-                        <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
-                        <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Детали</button>
-                    </div>
-                `).join('');
+                cachedShopQuests = shop.data;
+                renderShopQuests(shop.data);
             } else {
+                cachedShopQuests = [];
                 document.getElementById('quests-shop').innerHTML = '<p>Магазин квестов пуст</p>';
             }
         }
 
-        // ---- Поиск квестов (/quests/search) ----
-
-        function renderSearchEmptyState(message) {
-            const container = document.getElementById('search-results');
-            container.innerHTML = `
-                <div class="card" style="text-align: center; padding: 18px;">
-                    <div style="font-size: 22px; margin-bottom: 6px;">🤔</div>
-                    <p style="margin: 0; color: var(--gray);">${message}</p>
-                </div>
-            `;
-        }
-
-        function difficultyBadgeClass(difficulty) {
-            if (difficulty <= 1) return 'difficulty-1';
-            if (difficulty === 2) return 'difficulty-2';
-            return 'difficulty-3';
-        }
-
-        function formatHours(hours) {
-            if (!hours || hours <= 0) return 'Без ограничения';
-            if (hours < 24) return `${hours} ч`;
-            const days = Math.round(hours / 24);
-            return `${days} дн`;
-        }
-
-        function renderSearchResults(results, query) {
-            const container = document.getElementById('search-results');
-
-            if (!results || results.length === 0) {
-                renderSearchEmptyState('Ничего не найдено. Попробуйте переформулировать запрос или сделать его более общим.');
-                return;
-            }
-
-            const total = results.length;
-            container.innerHTML = `
-                <div style="font-size: 12px; color: var(--gray); margin-bottom: 10px;">
-                    Найдено квестов: ${total} • Запрос: "<strong>${query}</strong>"
-                </div>
-            ` + results.map(item => {
-                const quest = item.quest || {};
-                const tasks = quest.tasks || [];
-                const similarity = item.similarity_score ? (item.similarity_score * 100).toFixed(1) : null;
-
-                return `
-                    <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px;">
-                            <div>
-                                <h4 style="margin: 0 0 4px 0;">${quest.title || 'Без названия'}</h4>
-                                <p style="margin: 0; font-size: 12px; color: var(--gray);">
-                                    ID: ${quest.id ?? '—'} • Категория: ${quest.category || '—'} • ${quest.rarity || 'common'}
-                                </p>
-                            </div>
-                            ${similarity ? `<span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;">
-                                Релевантность: ${similarity}%
-                            </span>` : ''}
-                        </div>
-
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; font-size: 12px;">
-                            ${quest.category ? `<span class="badge secondary">📁 ${quest.category}</span>` : ''}
-                            ${quest.difficulty !== undefined ? `<span class="badge secondary">⚙️ Сложность: ${quest.difficulty}</span>` : ''}
-                            ${quest.is_sequential ? `<span class="badge secondary">🔗 Последовательный</span>` : `<span class="badge secondary">🔀 В свободном порядке</span>`}
-                            ${quest.tasks_count ? `<span class="badge secondary">✅ Заданий: ${quest.tasks_count}</span>` : ''}
-                        </div>
-
-                        ${quest.description ? `<p style="font-size: 13px; margin: 6px 0 8px;">${quest.description}</p>` : ''}
-
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--gray); margin-bottom: 8px;">
-                            ${quest.price !== undefined ? `<span>💰 Цена: ${quest.price} монет</span>` : ''}
-                            ${(quest.reward_coin !== undefined || quest.reward_xp !== undefined) ? `<span>🏆 Награда: ${quest.reward_coin || 0} монет, ${quest.reward_xp || 0} XP</span>` : ''}
-                            ${quest.time_limit_hours !== undefined ? `<span>⏱ Лимит: ${formatHours(quest.time_limit_hours)}</span>` : ''}
-                        </div>
-
-                        ${tasks.length ? `
-                            <div style="border-top: 1px dashed var(--gray-light); padding-top: 8px; margin-top: 4px;">
-                                <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px 0;">📋 Задачи квеста:</p>
-                                ${tasks.map((task, index) => `
-                                    <div style="margin-bottom: 6px;">
-                                        <div style="font-size: 13px; font-weight: 600;">${index + 1}. ${task.title || 'Без названия'}</div>
-                                        ${task.description ? `<div style="font-size: 12px; color: var(--gray);">${task.description}</div>` : ''}
-                                        <div style="font-size: 11px; color: var(--gray); margin-top: 2px;">
-                                            ${task.category ? `Категория: ${task.category} • ` : ''}
-                                            Сложность: ${task.difficulty ?? '—'} •
-                                            Награда: ${task.base_xp_reward || 0} XP, ${task.base_coin_reward || 0} монет
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-
-                        <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                            <button class="btn btn-info" onclick="showQuestDetails(${quest.id})">Открыть детали</button>
-                            <button class="btn btn-primary" onclick="purchaseQuest(${quest.id})">Купить</button>
-                            <span style="font-size: 11px; color: var(--gray);">ID квеста: ${quest.id ?? '—'}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function submitQuestSearch(event) {
-            event.preventDefault();
-
-            const queryInput = document.getElementById('search-query');
-            const statusSelect = 'all'; // TODO: пока что только all
-            const button = document.getElementById('search-button');
-            const resultsContainer = document.getElementById('search-results');
-
-            const query = queryInput.value.trim();
-            if (!query) {
-                renderSearchEmptyState('Введите текст запроса для поиска квестов.');
-                return;
-            }
-
-            resultsContainer.innerHTML = `
-                <div class="card" style="text-align: center; padding: 18px;">
-                    <div style="font-size: 20px; margin-bottom: 6px;">⏳</div>
-                    <p style="margin: 0; color: var(--gray);">Ищем подходящие квесты по вашему запросу...</p>
-                </div>
-            `;
-            button.disabled = true;
-
-            const body = {
-                query: query,
-                status: statusSelect.value || 'all',
-                top_k: 10
-            };
-
-            const result = await apiCall('/quests/search', {
-                method: 'POST',
-                body: JSON.stringify(body)
-            });
-
-            button.disabled = false;
-
-            if (!result.success) {
-                resultsContainer.innerHTML = `
-                    <div class="card" style="text-align: center; padding: 18px;">
-                        <div style="font-size: 22px; margin-bottom: 6px;">❌ Ошибка поиска</div>
-                        <p style="margin: 0; color: var(--gray);">${result.data?.error || 'Неизвестная ошибка. Попробуйте позже.'}</p>
-                    </div>
-                `;
-                return;
-            }
-
-            if (!Array.isArray(result.data)) {
-                resultsContainer.innerHTML = `
-                    <div class="card" style="text-align: center; padding: 18px;">
-                        <div style="font-size: 22px; margin-bottom: 6px;">⚠️ Неожиданный ответ</div>
-                        <p style="margin: 0; color: var(--gray);">Сервис поиска вернул данные в неожиданном формате.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            renderSearchResults(result.data, query);
-        }
         async function purchaseQuest(questId) {
             const result = await apiCall(`/quests/${questId}/purchase`, { method: 'POST' });
             if (result.success) {
@@ -2773,14 +2582,21 @@
 
         async function loadFriends() {
             const result = await apiCall('/friends');
-            if (result.success && result.data && Array.isArray(result.data)) {
-                document.getElementById('friends-list').innerHTML = result.data.map(friend => `
-                    <div class="card">
-                        <p>ID: ${friend.friend_id} | Имя: ${friend.username || 'Неизвестно'}</p>
-                    </div>
-                `).join('');
+            console.log('Friends API response:', result);
+            if (result.success && result.data) {
+                if (Array.isArray(result.data) && result.data.length > 0) {
+                    document.getElementById('friends-list').innerHTML = result.data.map(friend => `
+                        <div class="card">
+                            <p>ID: ${friend.friend_id} | Имя: ${friend.username || 'Неизвестно'}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('friends-list').innerHTML = '<p>У вас пока нет друзей</p>';
+                }
             } else {
-                document.getElementById('friends-list').innerHTML = '<p>У вас пока нет друзей</p>';
+                const errorMsg = result.data?.error || 'Ошибка загрузки списка друзей';
+                document.getElementById('friends-list').innerHTML = `<p style="color: #dc3545;">${errorMsg}</p>`;
+                console.error('Error loading friends:', result);
             }
         }
 
@@ -2915,14 +2731,15 @@
         }
 
         let currentActiveQuestId = null;
+        let cachedActiveQuests = [];
+        let cachedCompletedQuests = [];
 
-        // Мои квесты
-        async function loadMyQuests() {
-            const active = await apiCall('/quests/active');
-            const completed = await apiCall('/quests/completed');
-
-            if (active.success && active.data && Array.isArray(active.data)) {
-                document.getElementById('active-quests').innerHTML = active.data.map(quest => `
+        function renderActiveQuests(quests) {
+            if (!quests || quests.length === 0) {
+                document.getElementById('active-quests').innerHTML = '<p>Нет активных квестов</p>';
+                return;
+            }
+            document.getElementById('active-quests').innerHTML = quests.map(quest => `
             <div class="card">
                 <h4>${quest.title || 'Без названия'}</h4>
                 <p>${quest.description || 'Описание отсутствует'}</p>
@@ -2933,11 +2750,23 @@
                 <button class="btn btn-warning" onclick="completeQuest(${quest.id})">Завершить квест</button>
             </div>
         `).join('');
+        }
+
+        // Мои квесты
+        async function loadMyQuests() {
+            const active = await apiCall('/quests/active');
+            const completed = await apiCall('/quests/completed');
+
+            if (active.success && active.data && Array.isArray(active.data)) {
+                cachedActiveQuests = active.data;
+                renderActiveQuests(active.data);
             } else {
+                cachedActiveQuests = [];
                 document.getElementById('active-quests').innerHTML = '<p>Нет активных квестов</p>';
             }
 
             if (completed.success && completed.data && Array.isArray(completed.data)) {
+                cachedCompletedQuests = completed.data;
                 document.getElementById('completed-quests').innerHTML = completed.data.map(quest => `
             <div class="card">
                 <h4>${quest.title || 'Без названия'}</h4>
@@ -2946,6 +2775,7 @@
             </div>
         `).join('');
             } else {
+                cachedCompletedQuests = [];
                 document.getElementById('completed-quests').innerHTML = '<p>Нет завершенных квестов</p>';
             }
         }
