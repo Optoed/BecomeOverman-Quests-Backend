@@ -76,8 +76,9 @@ func (r *QuestRepository) SaveQuestToDB(quest *models.Quest, tasks []models.Task
 	return questID, nil
 }
 
-// GetQuestDetails возвращает детали квеста со всеми задачами
-func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID, userID int) (*models.Quest, error) {
+// GetQuestDetails возвращает детали квеста со всеми задачами.
+// Если userID != nil, возвращает доп. информацию о статусе, дедлайнах и наградах пользователя.
+func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID int, userID int) (*models.Quest, error) {
 	// Получаем основную информацию о квесте
 	var quest models.Quest
 	err := r.db.GetContext(ctx, &quest, `
@@ -90,12 +91,27 @@ func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID, userID i
 	// Получаем все задачи этого квеста
 	var tasks []models.Task
 	err = r.db.SelectContext(ctx, &tasks, `
-        SELECT t.*, qt.task_order
-        FROM tasks t
-        INNER JOIN quest_tasks qt ON t.id = qt.task_id
-        WHERE qt.quest_id = $1
-        ORDER BY qt.task_order ASC
-    `, questID)
+		SELECT 
+			t.*,
+			qt.task_order,
+			ut.status,
+			ut.scheduled_start,
+			ut.scheduled_end,
+			ut.deadline,
+			ut.duration,
+			ut.updated_by_ai,
+			ut.is_confirmed,
+			ut.completed_at,
+			ut.xp_gained,
+			ut.coin_gained
+		FROM tasks t
+		INNER JOIN quest_tasks qt ON t.id = qt.task_id
+		LEFT JOIN user_tasks ut 
+			ON t.id = ut.task_id AND ut.user_id = $2
+		WHERE qt.quest_id = $1
+		ORDER BY qt.task_order ASC
+		`, questID, userID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -247,6 +263,17 @@ func (r *QuestRepository) PurchaseQuest(ctx context.Context, userID, questID int
 		return err
 	}
 
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO user_tasks (user_id, task_id, quest_id, status)
+		SELECT $1, qt.task_id, qt.quest_id, 'not_started'
+		FROM quest_tasks qt
+		WHERE qt.quest_id = $2
+		ORDER BY qt.task_order
+	`, userID, questID)
+	if err != nil {
+		return err
+	}
+
 	// Записываем транзакцию
 	_, err = tx.ExecContext(ctx, `
         INSERT INTO user_coin_transactions 
@@ -262,9 +289,15 @@ func (r *QuestRepository) PurchaseQuest(ctx context.Context, userID, questID int
 
 // StartQuest начинает выполнение квеста
 func (r *QuestRepository) StartQuest(ctx context.Context, userID, questID int) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	// Устанавливаем время начала и завершения
 	var timeLimitHours int
-	err := r.db.GetContext(ctx, &timeLimitHours,
+	err = tx.GetContext(ctx, &timeLimitHours,
 		"SELECT time_limit_hours FROM quests WHERE id = $1", questID)
 	if err != nil {
 		return err
@@ -272,13 +305,25 @@ func (r *QuestRepository) StartQuest(ctx context.Context, userID, questID int) e
 
 	expiresAt := time.Now().Add(time.Duration(timeLimitHours) * time.Hour)
 
-	_, err = r.db.ExecContext(ctx, `
+	_, err = tx.ExecContext(ctx, `
         UPDATE user_quests 
         SET status = 'started', started_at = NOW(), expires_at = $1
         WHERE user_id = $2 AND quest_id = $3 AND status = 'purchased'`,
 		expiresAt, userID, questID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	_, err = tx.ExecContext(ctx, `
+		UPDATE user_tasks
+		SET status = 'active'
+		WHERE user_id = $1 AND quest_id = $2 AND status = 'not_started'
+	`, userID, questID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // CompleteTask отмечает выполнение задачи
@@ -296,7 +341,10 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 			SELECT 1 FROM user_quests WHERE user_id = $1 AND quest_id = $2 AND status = 'started'
 		) AND EXISTS (
 			SELECT 1 FROM quest_tasks WHERE quest_id = $2 AND task_id = $3
-		)`, userID, questID, taskID,
+		) AND EXISTS (
+			SELECT 1 FROM user_tasks WHERE user_id = $1 AND quest_id = $2 AND task_id = $3 AND status = 'active'
+		)
+		`, userID, questID, taskID,
 	)
 	if err != nil {
 		return err
@@ -306,23 +354,21 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 		return errors.New("quest or task not found or already completed")
 	}
 
-	// Добавляем задачу в буфер выполненных
+	// обновляем статус задачи, выдаем награду
 	_, err = tx.ExecContext(ctx, `
-        INSERT INTO user_completed_tasks 
-        (user_id, task_id, completed_at, xp_gained, coin_gained)
-        SELECT $1, $2, NOW(), t.base_xp_reward, t.base_coin_reward
-        FROM tasks t WHERE t.id = $2`,
-		userID, taskID)
-	if err != nil {
-		return err
-	}
-
-	// Увеличиваем счетчик выполненных задач
-	_, err = tx.ExecContext(ctx, `
-        UPDATE user_quests 
-        SET tasks_done = tasks_done + 1
-        WHERE user_id = $1 AND quest_id = $2`,
-		userID, questID)
+        UPDATE user_tasks ut
+		SET
+			status = 'completed',
+			completed_at = NOW(),
+			xp_gained = t.base_xp_reward, 
+			coin_gained = t.base_coin_reward
+        FROM tasks t
+		WHERE ut.user_id = $1
+          AND ut.quest_id = $2
+          AND ut.task_id = $3
+          AND ut.status = 'active'
+          AND t.id = ut.task_id
+		`, userID, questID, taskID)
 	if err != nil {
 		return err
 	}
@@ -330,7 +376,20 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 	return tx.Commit()
 }
 
-// CompleteQuest завершает квест
+// ----------------------------------------------------
+// --------- CompleteQuest завершает квест ------------
+// ----------------------------------------------------
+
+const checkAnyNotCompletedTasks = `
+	SELECT EXISTS (
+		SELECT 1
+		FROM user_tasks
+		WHERE user_id = $1
+		AND quest_id = $2
+		AND status != 'completed'
+	)
+`
+
 func (r *QuestRepository) CompleteQuest(ctx context.Context, userID, questID int) error {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -338,23 +397,28 @@ func (r *QuestRepository) CompleteQuest(ctx context.Context, userID, questID int
 	}
 	defer tx.Rollback()
 
-	// Проверяем, что все задачи выполнены
-	var totalTasks, completedTasks int
-	err = tx.GetContext(ctx, &totalTasks, `
-        SELECT COUNT(*) FROM quest_tasks WHERE quest_id = $1`, questID)
+	// --- проверка статуса user_quests ---
+	var uqStatus string
+	err = tx.GetContext(ctx, &uqStatus, `
+		 SELECT status FROM user_quests
+		 WHERE user_id = $1 AND quest_id = $2
+	 `, userID, questID)
+	if err != nil {
+		return errors.New("quest not found for user")
+	}
+	if uqStatus != "started" {
+		return errors.New("quest is not in started state")
+	}
+	// --- конец проверки ---
+
+	// Проверяем: есть ли хоть одна невыполненная задача
+	var hasIncomplete bool
+	err = tx.GetContext(ctx, &hasIncomplete, checkAnyNotCompletedTasks, userID, questID)
 	if err != nil {
 		return err
 	}
 
-	err = tx.GetContext(ctx, &completedTasks, `
-        SELECT tasks_done FROM user_quests 
-        WHERE user_id = $1 AND quest_id = $2`,
-		userID, questID)
-	if err != nil {
-		return err
-	}
-
-	if completedTasks < totalTasks {
+	if hasIncomplete {
 		return errors.New("not all tasks completed")
 	}
 
@@ -363,30 +427,23 @@ func (r *QuestRepository) CompleteQuest(ctx context.Context, userID, questID int
 	var friendID int
 	err = tx.QueryRowContext(ctx,
 		`SELECT id, 
-            CASE 
-                WHEN user1_id = $1 THEN user2_id 
-                ELSE user1_id 
-            END as friend_id
+            CASE WHEN user1_id = $1 THEN user2_id ELSE user1_id END
         FROM shared_quests 
-        WHERE quest_id = $2 AND (user1_id = $1 OR user2_id = $1) AND status = 'active'`,
-		userID, questID).Scan(&sharedQuestID, &friendID)
+        WHERE quest_id = $2
+			AND (user1_id = $1 OR user2_id = $1)
+			AND status = 'active'
+	`, userID, questID).Scan(&sharedQuestID, &friendID)
 
-	isSharedQuest := (err == nil)
-
-	if isSharedQuest {
-		// Это совместный квест - проверяем прогресс друга
-		var friendTasksDone int
-		err = tx.GetContext(ctx, &friendTasksDone, `
-            SELECT tasks_done FROM user_quests 
-            WHERE user_id = $1 AND quest_id = $2`,
-			friendID, questID)
+	if err == nil {
+		// проверяем друга
+		var friendHasIncomplete bool
+		err = tx.GetContext(ctx, &friendHasIncomplete, checkAnyNotCompletedTasks, friendID, questID)
 		if err != nil {
-			return errors.New("friend quest progress not found")
+			return err
 		}
 
-		if friendTasksDone < totalTasks {
-			// Друг еще не завершил - НИКТО не получает награду
-			return errors.New("friend has not completed all tasks yet")
+		if friendHasIncomplete {
+			return errors.New("friend has not completed all tasks")
 		}
 
 		// Оба завершили все задачи! Награждаем обоих и завершаем совместный квест
@@ -395,12 +452,11 @@ func (r *QuestRepository) CompleteQuest(ctx context.Context, userID, questID int
 		}
 
 		// Отмечаем совместный квест как завершенный
-		_, err = tx.ExecContext(ctx, `
-            UPDATE shared_quests SET status = 'completed' 
-            WHERE id = $1`, sharedQuestID)
+		_, err = tx.ExecContext(ctx, `UPDATE shared_quests SET status = 'completed' WHERE id = $1`, sharedQuestID)
 		if err != nil {
 			return err
 		}
+
 	} else {
 		// Обычный квест - награждаем только текущего пользователя
 		if err := r.completeQuestForUsers(tx, ctx, []int{userID}, questID); err != nil {
@@ -448,7 +504,7 @@ func (r *QuestRepository) completeQuestForUsers(tx *sqlx.Tx, ctx context.Context
 
 		// Подтверждаем задачи
 		_, err = tx.ExecContext(ctx, `
-            UPDATE user_completed_tasks 
+            UPDATE user_tasks 
             SET is_confirmed = true
             WHERE user_id = $1 AND task_id IN (
                 SELECT task_id FROM quest_tasks WHERE quest_id = $2

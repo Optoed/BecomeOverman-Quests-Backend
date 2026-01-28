@@ -126,8 +126,8 @@ func (r *QuestRepository) startQuestForUser(tx *sqlx.Tx, userID, questID int) er
 
 	// Покупаем квест
 	_, err = tx.Exec(`
-			INSERT INTO user_quests (user_id, quest_id, status, tasks_done) 
-			VALUES ($1, $2, 'purchased', 0)`,
+			INSERT INTO user_quests (user_id, quest_id, status) 
+			VALUES ($1, $2, 'purchased')`,
 		userID, questID)
 	if err != nil {
 		return err

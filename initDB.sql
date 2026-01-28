@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS user_achievements CASCADE;
 DROP TABLE IF EXISTS achievements CASCADE;
 DROP TABLE IF EXISTS user_coin_transactions CASCADE;
 DROP TABLE IF EXISTS user_daily_streaks CASCADE;
-DROP TABLE IF EXISTS user_completed_tasks CASCADE;
+DROP TABLE IF EXISTS user_tasks CASCADE;
 DROP TABLE IF EXISTS task_variants CASCADE;
 DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS user_completed_quests CASCADE;
@@ -13,6 +13,8 @@ DROP TABLE IF EXISTS quest_tasks CASCADE;
 DROP TABLE IF EXISTS quests CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS friends CASCADE;
+DROP TABLE IF EXISTS shared_quests CASCADE;
 
 -- Удаление типов
 DROP TYPE IF EXISTS category_name CASCADE;
@@ -66,23 +68,6 @@ CREATE TABLE tasks (
 
     -- type task_type NOT NULL DEFAULT 'daily',
     -- cooldown_hours INT DEFAULT 24,
-);
-
--- Завершенные задачи пользователя
-CREATE TABLE user_completed_tasks (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    task_id INT NOT NULL,
-
-    is_confirmed BOOL DEFAULT FALSE NOT NULL,
-    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    xp_gained INT NOT NULL,
-    coin_gained INT NOT NULL,
-
-    -- TODO: сколько принесла опыта в каждой ветке при выполнении
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
 
 -- Транзакции валюты пользователя
@@ -142,6 +127,29 @@ CREATE TABLE quests (
     time_limit_hours INT DEFAULT 0          -- Ограничение по времени (опционально)
 );
 
+
+-- задачи пользователя
+CREATE TABLE user_tasks (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task_id INT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    quest_id INT REFERENCES quests(id) ON DELETE SET NULL,  -- опционально
+
+    status VARCHAR(50) NOT NULL DEFAULT 'active',         -- not_started, active, completed, TODO: failed
+    scheduled_start TIMESTAMP,
+    scheduled_end TIMESTAMP,
+    deadline TIMESTAMP,
+    duration INT,                                        -- время выделенное на задачу в минутах (?)
+    updated_by_ai BOOLEAN DEFAULT FALSE,                 -- была ли запланирована AI
+
+    is_confirmed BOOL DEFAULT FALSE NOT NULL,            -- прежнее поле
+    completed_at TIMESTAMP,                              -- прежнее поле
+    xp_gained INT NOT NULL DEFAULT 0,
+    coin_gained INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT unique_user_task UNIQUE (user_id, task_id)
+);
+
 -- Связь квестов и задач (какие задачи входят в квест)
 CREATE TABLE quest_tasks (
     id SERIAL PRIMARY KEY,
@@ -161,7 +169,6 @@ CREATE TABLE user_quests (
     quest_id INT NOT NULL,
 
     status VARCHAR(255) NOT NULL DEFAULT 'purchased', -- "purchased", "started", "failed", "completed"
-    tasks_done INT DEFAULT 0,
 
     xp_gained INT,
     coin_gained INT,

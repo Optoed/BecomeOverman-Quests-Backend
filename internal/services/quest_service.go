@@ -51,7 +51,7 @@ func (s *QuestService) CompleteQuest(ctx context.Context, userID, questID int) e
 	return s.questRepo.CompleteQuest(ctx, userID, questID)
 }
 
-func (s *QuestService) GetQuestDetails(ctx context.Context, questID, userID int) (*models.Quest, error) {
+func (s *QuestService) GetQuestDetails(ctx context.Context, questID int, userID int) (*models.Quest, error) {
 	return s.questRepo.GetQuestDetails(ctx, questID, userID)
 }
 
