@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Become OverMan</title>
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -34,14 +38,43 @@
         }
 
         .container {
-            max-width: 1000px;
+            /* Базовые стили для десктопа */
+            width: 95%;
+            max-width: 1800px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 30px;
+            padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 100vh;
+        }
+
+        /* Для очень больших экранов */
+        @media (min-width: 2000px) {
+            .container {
+                width: 90%;
+                max-width: 2000px;
+                padding: 50px;
+            }
+        }
+
+        /* Для ноутбуков */
+        @media (max-width: 1440px) {
+            .container {
+                width: 97%;
+                padding: 30px;
+            }
+        }
+
+        /* Для планшетов */
+        @media (max-width: 1024px) {
+            .container {
+                width: 100%;
+                border-radius: 0;
+                padding: 25px;
+            }
         }
 
         .header {
@@ -1351,8 +1384,202 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
         }
+
+        /* Стили для модального окна задачи */
+        .task-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .task-modal {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        .task-modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-modal-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1.3rem;
+        }
+
+        .task-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .task-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .task-modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .task-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .task-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .task-info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .task-info-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .task-info-value {
+            font-size: 1rem;
+            color: var(--dark);
+        }
+
+        .status-completed {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .status-active {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .category-health {
+            color: #ef4444;
+        }
+
+        .category-willpower {
+            color: #6366f1;
+        }
+
+        .category-intelligence {
+            color: #3b82f6;
+        }
+
+        .category-charisma {
+            color: #8b5cf6;
+        }
+
+        .category-mental_health {
+            color: #06b6d4;
+        }
+
+        .task-modal-footer {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        /* Стили для зачеркнутых задач в календаре */
+        .completed-task .fc-event-title {
+            text-decoration: line-through;
+            opacity: 0.8;
+        }
+
+        .task-status-icon {
+            margin-left: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* Улучшаем стили событий календаря */
+        .fc-event {
+            border-radius: 8px;
+            padding: 4px 8px;
+            margin: 2px 0;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .fc-event:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .fc-event-main-frame {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fc-event-time {
+            font-weight: 600;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <body>
     <!-- Контейнер для уведомлений -->
@@ -1360,8 +1587,8 @@
 
     <div class="container">
         <div class="header">
-            <h1>🚀 Become OverMan</h1>
-            <p>Прокачай себя до сверхчеловека!</p>
+            <h1>become overman</h1>
+            <p>Make life you want.</p>
         </div>
 
         <!-- Навигация -->
@@ -1372,6 +1599,7 @@
             <button class="tab" onclick="openTab('ai-quests')"><span>🤖 AI Квесты</span></button>
             <button class="tab" onclick="openTab('friends')"><span>👥 Друзья</span></button>
             <button class="tab" onclick="openTab('my-quests')"><span>📚 Мои квесты</span></button>
+            <button class="tab" onclick="openTab('calendar')"><span>📅 Календарь</span></button>
         </div>
 
         <!-- Авторизация -->
@@ -1494,6 +1722,17 @@
 
             <h3>✅ Завершенные квесты</h3>
             <div id="completed-quests"></div>
+        </div>
+
+        <!-- Календарь -->
+        <div id="calendar" class="tab-content">
+            <h3>📅 Мое расписание</h3>
+
+            <button class="btn btn-primary" onclick="generateAISchedule()">
+                🤖 AI-расписание
+            </button>
+
+            <div id="calendar-container" style="margin-top:20px;"></div>
         </div>
     </div>
 
@@ -1790,25 +2029,57 @@
 
         // Навигация
         function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-
-            document.getElementById(tabName).classList.add('active');
-
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach((tab, index) => {
-                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
-                    tab.classList.add('active');
-                }
+            // Скрываем все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none';
             });
 
-            if (tabName === 'quests') loadQuests();
-            if (tabName === 'friends') loadFriends();
-            if (tabName === 'my-quests') loadMyQuests();
-            if (tabName === 'ai-quests') {
-                setTimeout(() => {
-                    document.getElementById('ai-prompt').focus();
-                }, 100);
+            // Убираем активные классы у кнопок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Активируем выбранную вкладку
+            const activeTab = document.getElementById(tabName);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                activeTab.style.display = 'block';
+
+                // Активируем соответствующую кнопку таба
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                // Загружаем контент для вкладки
+                switch (tabName) {
+                    case 'quests':
+                        loadQuests();
+                        break;
+                    case 'friends':
+                        loadFriends();
+                        break;
+                    case 'my-quests':
+                        loadMyQuests();
+                        break;
+                    case 'profile':
+                        loadProfile();
+                        break;
+                    case 'calendar':
+                        // Ждем, пока вкладка станет видимой, затем загружаем календарь
+                        setTimeout(() => {
+                            loadCalendarData(); // Заменяем initCalendar([]) на загрузку данных
+                        }, 10);
+                        break;
+                    case 'ai-quests':
+                        setTimeout(() => {
+                            const promptField = document.getElementById('ai-prompt');
+                            if (promptField) promptField.focus();
+                        }, 100);
+                        break;
+                }
             }
         }
 
@@ -1870,25 +2141,6 @@
             } else {
                 showError('Ошибка загрузки профиля: ' + (result.data?.error || 'Неизвестная ошибка'));
             }
-        }
-        // Автоматическая загрузка профиля при открытии вкладки
-        function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-
-            document.getElementById(tabName).classList.add('active');
-
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach((tab, index) => {
-                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
-                    tab.classList.add('active');
-                }
-            });
-
-            if (tabName === 'quests') loadQuests();
-            if (tabName === 'friends') loadFriends();
-            if (tabName === 'my-quests') loadMyQuests();
-            if (tabName === 'profile') loadProfile(); // Добавьте эту строку
         }
 
         // API вызовы
@@ -2365,6 +2617,370 @@
 
             // Активируем таб "Квесты"
             openTab('quests');
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // ----------- Calendar ------------------------------------------------------------------
+
+        // Инициализация календаря
+        let calendar = null;
+        let calendarInitialized = false;
+
+        function initCalendar(events = []) {
+            const calendarEl = document.getElementById('calendar-container');
+
+            if (!calendarEl) {
+                console.error('Элемент calendar-container не найден');
+                return;
+            }
+
+            // Очищаем контейнер
+            calendarEl.innerHTML = '';
+
+            if (calendar) {
+                try {
+                    calendar.destroy();
+                } catch (e) {
+                    console.warn('Ошибка при уничтожении календаря:', e);
+                }
+            }
+
+            calendarEl.style.minHeight = '600px';
+            calendarEl.style.display = 'block';
+
+            setTimeout(() => {
+                try {
+                    calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        height: 'auto',
+                        locale: 'ru',
+                        events: events,
+                        eventTimeFormat: {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        },
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        buttonText: {
+                            today: 'Сегодня',
+                            month: 'Месяц',
+                            week: 'Неделя',
+                            day: 'День'
+                        },
+                        selectable: true,
+                        editable: true,
+                        eventClick: function (info) {
+                            showTaskDetails(info.event);
+                        },
+                        eventDidMount: function (info) {
+                            // Если задача завершена, делаем текст зачеркнутым
+                            if (info.event.extendedProps.isCompleted) {
+                                const titleElement = info.el.querySelector('.fc-event-title');
+                                if (titleElement) {
+                                    titleElement.innerHTML = `<s>${info.event.title}</s>`;
+                                }
+                            }
+
+                            // Добавляем всплывающую подсказку
+                            info.el.title = `${info.event.extendedProps.questTitle}\n${info.event.extendedProps.description || 'Нет описания'}\nСтатус: ${info.event.extendedProps.status === 'completed' ? '✅ Выполнено' : '⏳ Активно'}`;
+                        },
+                        // Кастомизация отображения событий
+                        eventContent: function (arg) {
+                            const isCompleted = arg.event.extendedProps.isCompleted;
+                            const title = isCompleted ?
+                                `<s>${arg.event.title}</s>` :
+                                arg.event.title;
+
+                            return {
+                                html: `
+                                    <div class="fc-event-main-frame">
+                                        <div class="fc-event-time">${arg.timeText}</div>
+                                        <div class="fc-event-title-container">
+                                            <div class="fc-event-title">${title}</div>
+                                        </div>
+                                        ${isCompleted ? '<span class="task-status-icon">✅</span>' : ''}
+                                    </div>
+                                `
+                            };
+                        },
+                        // Для отображения в виде списка
+                        eventDisplay: 'block',
+                        eventOrder: 'start,allDay,duration',
+                        nowIndicator: true,
+                        dayMaxEvents: 3, // Максимум событий в день
+                        views: {
+                            timeGridWeek: {
+                                dayMaxEvents: 10 // Больше событий в недельном виде
+                            },
+                            timeGridDay: {
+                                dayMaxEvents: 20 // Еще больше в дневном
+                            }
+                        }
+                    });
+
+                    calendar.render();
+                    calendarInitialized = true;
+
+                    setTimeout(() => {
+                        if (calendar) {
+                            calendar.updateSize();
+                        }
+                    }, 100);
+
+                } catch (error) {
+                    console.error('Ошибка создания календаря:', error);
+                    calendarEl.innerHTML = `
+                        <div style="text-align: center; padding: 50px; color: #ef4444;">
+                            <h3>❌ Ошибка загрузки календаря</h3>
+                            <p>${error.message}</p>
+                            <button class="btn btn-primary" onclick="loadCalendarData()">Попробовать снова</button>
+                        </div>
+                    `;
+                }
+            }, 50);
+        }
+
+        // Функция отображения деталей задачи
+        function showTaskDetails(event) {
+            const task = event.extendedProps;
+
+            // Создаем красивое модальное окно
+            const modalHTML = `
+        <div class="task-modal-overlay">
+            <div class="task-modal">
+                <div class="task-modal-header">
+                    <h3>${task.taskTitle}</h3>
+                    <button class="task-modal-close" onclick="closeTaskModal()">×</button>
+                </div>
+                <div class="task-modal-body">
+                    <div class="task-info-grid">
+                        <div class="task-info-item">
+                            <span class="task-info-label">Квест:</span>
+                            <span class="task-info-value">${task.questTitle}</span>
+                        </div>
+                        <div class="task-info-item">
+                            <span class="task-info-label">Статус:</span>
+                            <span class="task-info-value ${task.status === 'completed' ? 'status-completed' : 'status-active'}">
+                                ${task.status === 'completed' ? '✅ Выполнено' : '⏳ Активно'}
+                            </span>
+                        </div>
+                        <div class="task-info-item">
+                            <span class="task-info-label">Категория:</span>
+                            <span class="task-info-value category-${task.category}">
+                                ${getCategoryIcon(task.category)} ${task.category}
+                            </span>
+                        </div>
+                        <div class="task-info-item">
+                            <span class="task-info-label">Сложность:</span>
+                            <span class="task-info-value">
+                                ${'★'.repeat(task.difficulty)}${'☆'.repeat(Math.max(0, 5 - task.difficulty))}
+                            </span>
+                        </div>
+                        <div class="task-info-item">
+                            <span class="task-info-label">Награда:</span>
+                            <span class="task-info-value">
+                                <span class="xp-reward">${task.rewardXP} XP</span>
+                                <span class="coin-reward">${task.rewardCoins} 🪙</span>
+                            </span>
+                        </div>
+                        <div class="task-info-item full-width">
+                            <span class="task-info-label">Описание:</span>
+                            <span class="task-info-value">${task.description || 'Нет описания'}</span>
+                        </div>
+                        ${task.completedAt ? `
+                        <div class="task-info-item">
+                            <span class="task-info-label">Выполнено:</span>
+                            <span class="task-info-value">
+                                ${new Date(task.completedAt).toLocaleString('ru-RU')}
+                            </span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="task-modal-footer">
+                    <button class="btn btn-primary" onclick="completeTaskFromCalendar(${task.questId}, ${task.taskId})">
+                        ${task.status === 'completed' ? 'Уже выполнено' : 'Отметить выполненным'}
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeTaskModal()">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+            // Создаем и добавляем модальное окно
+            const modalContainer = document.createElement('div');
+            modalContainer.id = 'task-modal-container';
+            modalContainer.innerHTML = modalHTML;
+            document.body.appendChild(modalContainer);
+        }
+
+        // Функция закрытия модального окна
+        function closeTaskModal() {
+            const modalContainer = document.getElementById('task-modal-container');
+            if (modalContainer) {
+                modalContainer.remove();
+            }
+        }
+
+        // Функция для получения иконки категории
+        function getCategoryIcon(category) {
+            const icons = {
+                'health': '💪',
+                'willpower': '🧠',
+                'intelligence': '📚',
+                'charisma': '🎭',
+                'mental_health': '🧘'
+            };
+            return icons[category] || '🎯';
+        }
+
+        // Функция выполнения задачи из календаря
+        async function completeTaskFromCalendar(questId, taskId) {
+            try {
+                const result = await apiCall(`/quests/${questId}/${taskId}/complete`, {
+                    method: 'POST'
+                });
+
+                if (result.success) {
+                    showSuccess('Задача отмечена выполненной! ✅');
+                    closeTaskModal();
+                    // Перезагружаем календарь
+                    loadCalendarData();
+                } else {
+                    showError('Ошибка: ' + (result.data.error || 'Не удалось выполнить задачу'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        // Функция загрузки данных для календаря
+        async function loadCalendarData() {
+            try {
+                showInfo('Загрузка расписания...');
+
+                const result = await apiCall('/quests/my-quests-with-details');
+
+                // console.log('loadCalendarData result:', result);
+
+                if (result.success && Array.isArray(result.data)) {
+                    const events = mapQuestsToCalendarEvents(result.data);
+
+                    console.log('loadCalendarData events:', events);
+
+                    initCalendar(events);
+                    showSuccess('Расписание загружено! 📅');
+                } else {
+                    showError('Ошибка загрузки расписания');
+                    initCalendar([]); // Инициализируем пустой календарь
+                }
+
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+                initCalendar([]);
+            }
+        }
+
+        // Функция преобразования квестов в события календаря
+        function mapQuestsToCalendarEvents(quests) {
+            const events = [];
+
+            if (!quests || !Array.isArray(quests)) {
+                return events;
+            }
+
+            quests.forEach(quest => {
+                if (quest.tasks && Array.isArray(quest.tasks)) {
+                    quest.tasks.forEach(task => {
+                        // Пропускаем задачи без расписания
+                        if (!task.scheduled_start || !task.scheduled_end) {
+                            return;
+                        }
+
+                        const isCompleted = task.status === 'completed';
+                        const baseColor = getCategoryColor(task.category);
+
+                        events.push({
+                            title: `[${quest.title}] ${task.title}`,
+                            start: task.scheduled_start,
+                            end: task.scheduled_end,
+                            allDay: false,
+                            extendedProps: {
+                                questId: quest.id,
+                                taskId: task.id,
+                                questTitle: quest.title,
+                                taskTitle: task.title,
+                                description: task.description,
+                                status: task.status,
+                                category: task.category,
+                                difficulty: task.difficulty,
+                                rewardXP: task.base_xp_reward,
+                                rewardCoins: task.base_coin_reward,
+                                isCompleted: isCompleted,
+                                completedAt: task.completed_at
+                            },
+                            backgroundColor: isCompleted ? '#10b981' : baseColor, // Зеленый для завершенных
+                            borderColor: isCompleted ? '#059669' : darkenColor(baseColor),
+                            textColor: '#ffffff',
+                            classNames: isCompleted ? ['completed-task'] : []
+                        });
+                    });
+                }
+            });
+
+            return events;
+        }
+
+        // Функция для получения цвета по категории
+        function getCategoryColor(category) {
+            const colors = {
+                'health': '#ef4444',      // Красный
+                'willpower': '#6366f1',   // Индиго
+                'intelligence': '#3b82f6', // Синий
+                'charisma': '#8b5cf6',    // Фиолетовый
+                'mental_health': '#06b6d4' // Голубой
+            };
+            return colors[category] || '#6b7280'; // Серый по умолчанию
+        }
+
+        // Функция для затемнения цвета
+        function darkenColor(color) {
+            // Простое затемнение цвета
+            return color.replace(/rgb\((\d+), (\d+), (\d+)\)/, (match, r, g, b) => {
+                return `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`;
+            });
+        }
+
+        // Функция генерации AI расписания
+        async function generateAISchedule() {
+            showInfo('Генерируем расписание...');
+
+            try {
+                const result = await apiCall('/quests/schedule', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        prompt: 'Сгенерируй оптимальное расписание'
+                    })
+                });
+
+                if (result.success) {
+                    // const events = mapTasksToCalendarEvents(result.data);
+                    // initCalendar(events);
+                    initCalendar();
+                    showSuccess('Расписание построено! 📅');
+                } else {
+                    showError('Ошибка генерации расписания: ' + (result.data?.error || 'Неизвестная ошибка'));
+                    initCalendar();
+                }
+
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+                initCalendar();
+            }
         }
     </script>
 </body>

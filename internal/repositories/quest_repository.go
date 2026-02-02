@@ -76,6 +76,50 @@ func (r *QuestRepository) SaveQuestToDB(quest *models.Quest, tasks []models.Task
 	return questID, nil
 }
 
+func (r *QuestRepository) SetOrUpdateScheduleTasks(ctx context.Context, userID int, tasks []models.Task) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `
+		INSERT INTO user_tasks (
+			user_id,
+			task_id,
+			scheduled_start,
+			scheduled_end,
+			deadline,
+			duration
+		)
+		VALUES (
+			$1, $2, $3, $4, $5, $6
+		)
+		ON CONFLICT (user_id, task_id)
+		DO UPDATE SET
+		scheduled_start = COALESCE(user_tasks.scheduled_start, EXCLUDED.scheduled_start),
+		scheduled_end   = COALESCE(user_tasks.scheduled_end,   EXCLUDED.scheduled_end),
+		deadline        = COALESCE(user_tasks.deadline,        EXCLUDED.deadline),
+		duration        = COALESCE(user_tasks.duration,        EXCLUDED.duration);
+	`
+
+	for _, t := range tasks {
+		_, err := tx.ExecContext(ctx, query,
+			userID,
+			t.ID,
+			t.ScheduledStart,
+			t.ScheduledEnd,
+			t.Deadline,
+			t.Duration,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
 // GetQuestDetails возвращает детали квеста со всеми задачами.
 // Если userID != nil, возвращает доп. информацию о статусе, дедлайнах и наградах пользователя.
 func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID int, userID int) (*models.Quest, error) {
@@ -119,6 +163,51 @@ func (r *QuestRepository) GetQuestDetails(ctx context.Context, questID int, user
 	quest.Tasks = tasks
 
 	return &quest, nil
+}
+
+func (r *QuestRepository) GetMyAllQuestsWithDetails(ctx context.Context, userID int) ([]models.Quest, error) {
+	var quests []models.Quest
+	err := r.db.SelectContext(ctx, &quests, `
+		SELECT q.* FROM quests q
+		INNER JOIN user_quests uq ON q.id = uq.quest_id
+		WHERE uq.user_id = $1
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range quests {
+		var tasks []models.Task
+
+		err = r.db.SelectContext(ctx, &tasks, `
+			SELECT 
+				t.*,
+				qt.task_order,
+				ut.status,
+				ut.scheduled_start,
+				ut.scheduled_end,
+				ut.deadline,
+				ut.duration,
+				ut.updated_by_ai,
+				ut.is_confirmed,
+				ut.completed_at,
+				ut.xp_gained,
+				ut.coin_gained
+			FROM tasks t
+			INNER JOIN quest_tasks qt ON t.id = qt.task_id
+			LEFT JOIN user_tasks ut 
+				ON t.id = ut.task_id AND ut.user_id = $2
+			WHERE qt.quest_id = $1
+			ORDER BY qt.task_order ASC
+			`, quests[i].ID, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		quests[i].Tasks = tasks
+	}
+
+	return quests, nil
 }
 
 // GetAvailableQuests возвращает квесты, доступные для пользователя

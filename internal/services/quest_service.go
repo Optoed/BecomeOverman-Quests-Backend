@@ -31,6 +31,10 @@ func (s *QuestService) GetMyCompletedQuests(ctx context.Context, userID int) ([]
 	return s.questRepo.GetMyCompletedQuests(ctx, userID)
 }
 
+func (s *QuestService) GetMyAllQuestsWithDetails(ctx context.Context, userID int) ([]models.Quest, error) {
+	return s.questRepo.GetMyAllQuestsWithDetails(ctx, userID)
+}
+
 // PurchaseQuest handles the purchase of a quest by a user
 func (s *QuestService) PurchaseQuest(ctx context.Context, userID, questID int) error {
 	return s.questRepo.PurchaseQuest(ctx, userID, questID)
@@ -57,11 +61,6 @@ func (s *QuestService) GetQuestDetails(ctx context.Context, questID int, userID 
 
 func (s *QuestService) CreateSharedQuest(user1ID, user2ID, questID int) error {
 	return s.questRepo.CreateSharedQuest(user1ID, user2ID, questID)
-}
-
-// GenerateAIQuest вызывает Python скрипт для генерации квеста
-func (s *QuestService) GenerateAIQuest(userMessage string) (*models.AIQuestResponse, error) {
-	return GenerateAIQuest(userMessage)
 }
 
 func (s *QuestService) SaveQuestToDB(quest *models.Quest, tasks []models.Task) (int, error) {
