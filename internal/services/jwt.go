@@ -1,13 +1,13 @@
 package services
 
 import (
-	"os"
+	"BecomeOverMan/internal/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte(os.Getenv("JWT_SECRET"))
+var jwtKey = []byte(config.Cfg.JWTSecret)
 
 type Claims struct {
 	UserID int `json:"user_id"`

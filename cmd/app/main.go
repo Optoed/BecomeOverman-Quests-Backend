@@ -3,30 +3,22 @@ package main
 import (
 	"BecomeOverMan/internal/handlers"
 	"log"
-	"os"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
+	"BecomeOverMan/internal/config"
 	_ "BecomeOverMan/internal/models"
 	"BecomeOverMan/internal/repositories"
 	"BecomeOverMan/internal/services"
 )
 
 func main() {
-	if err := godotenv.Load("../../.env"); err != nil {
-		err = godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file", err)
-		}
-	}
-
-	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
+	db, err := sqlx.Connect("postgres", config.Cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
