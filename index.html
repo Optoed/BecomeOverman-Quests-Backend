@@ -9,6 +9,10 @@
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
+    <!-- Cytoscape.js -->
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-cose-bilkent/cytoscape-cose-bilkent.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -39,8 +43,8 @@
 
         .container {
             /* Базовые стили для десктопа */
-            width: 95%;
-            max-width: 1800px;
+            width: 99%;
+            /*max-width: 2000px;*/
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -49,32 +53,6 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-height: 100vh;
-        }
-
-        /* Для очень больших экранов */
-        @media (min-width: 2000px) {
-            .container {
-                width: 90%;
-                max-width: 2000px;
-                padding: 50px;
-            }
-        }
-
-        /* Для ноутбуков */
-        @media (max-width: 1440px) {
-            .container {
-                width: 97%;
-                padding: 30px;
-            }
-        }
-
-        /* Для планшетов */
-        @media (max-width: 1024px) {
-            .container {
-                width: 100%;
-                border-radius: 0;
-                padding: 25px;
-            }
         }
 
         .header {
@@ -1310,13 +1288,13 @@
 
         /* Стили для простой формы */
         .simple-form {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
         .prompt-input {
             width: 100%;
-            min-height: 120px;
+            min-height: 140px;
             padding: 15px;
             border: 2px solid var(--gray-light);
             border-radius: 12px;
@@ -1575,6 +1553,41 @@
                 transform: translateY(0);
             }
         }
+
+        /* Стили для деталей карты квестов */
+        .quest-map-details {
+            padding: 20px;
+        }
+
+        .quest-map-details h3 {
+            color: var(--dark);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .quest-map-details p {
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .quest-map-details strong {
+            color: var(--dark);
+            min-width: 100px;
+            display: inline-block;
+        }
+
+        /* Адаптивность для карты */
+        @media (max-width: 768px) {
+            #cy {
+                height: 400px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #cy {
+                height: 300px !important;
+            }
+        }
     </style>
 </head>
 
@@ -1600,6 +1613,7 @@
             <button class="tab" onclick="openTab('friends')"><span>👥 Друзья</span></button>
             <button class="tab" onclick="openTab('my-quests')"><span>📚 Мои квесты</span></button>
             <button class="tab" onclick="openTab('calendar')"><span>📅 Календарь</span></button>
+            <button class="tab" onclick="openTab('quest-map')"><span>🌳 Карта квестов</span></button>
         </div>
 
         <!-- Авторизация -->
@@ -1643,7 +1657,9 @@
 
         <!-- ВКЛАДКА: AI Генерация квестов -->
         <div id="ai-quests" class="tab-content">
-            <h3>🤖 Создать квест с помощью AI</h3>
+            <div style="margin-bottom: 20px;  text-align: center;">
+                <h3>🤖 Создать квест с помощью AI</h3>
+            </div>
 
             <div class="simple-form">
                 <div class="voice-input-section" style="margin-bottom: 20px;">
@@ -1673,12 +1689,12 @@
                     </div>
                 </div>
 
-                <textarea id="ai-prompt" class="prompt-input" placeholder="🎯 Опишите, какой квест вы хотите создать...
-                    Например: 'Квест для развития силы воли и физического здоровья'
-                    Или: 'Интеллектуальный квест для улучшения памяти'
-                    Или: 'Социальный квест для развития коммуникативных навыков'
+                <textarea id="ai-prompt" class="prompt-input" placeholder="🎯 Опишите, какой квест вы хотите создать.
+Например: 'Квест для развития силы воли и физического здоровья'
+Или: 'Интеллектуальный квест для улучшения памяти'
+Или: 'Социальный квест для развития коммуникативных навыков'
 
-                    Либо нажмите кнопку выше для голосового ввода"></textarea>
+Либо нажмите кнопку выше для голосового ввода"></textarea>
 
                 <div class="loading-spinner" id="ai-loading">
                     <div class="spinner"></div>
@@ -1698,7 +1714,7 @@
             <button class="btn btn-primary" onclick="addFriend()">Добавить</button>
 
             <h3>👥 Мои друзья</h3>
-            <div id="friends-list"></div>
+            <div id="friends-list" style="margin-bottom: 10px;"></div>
 
             <h3>🤝 Совместный квест</h3>
             <input type="number" id="shared-friend-id" placeholder="🔢 ID друга">
@@ -1733,6 +1749,58 @@
             </button>
 
             <div id="calendar-container" style="margin-top:20px;"></div>
+        </div>
+
+
+        <!-- Карта квестов -->
+        <div id="quest-map" class="tab-content">
+            <div style="margin-bottom: 20px; text-align: center;">
+                <h3>🌳 Карта ваших квестов</h3>
+                <p style="color: var(--gray);">Интерактивная визуализация всех квестов и задач</p>
+
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 20px 0;">
+                    <button class="btn btn-primary" onclick="loadQuestMap()">
+                        🔄 Загрузить карту
+                    </button>
+                    <button class="btn btn-info" onclick="applyTreeLayout()">
+                        🌳 Дерево
+                    </button>
+                    <button class="btn btn-info" onclick="applyGridLayout()">
+                        🏁 Сетка
+                    </button>
+                    <button class="btn btn-info" onclick="applyCircleLayout()">
+                        ⭕ Круг
+                    </button>
+                </div>
+            </div>
+
+            <!-- Контейнер для графа -->
+            <div id="cy" style="width: 100%; height: 600px; border-radius: 15px; border: 2px solid var(--gray-light);">
+            </div>
+
+            <!-- Легенда -->
+            <div
+                style="margin-top: 20px; padding: 20px; background: white; border-radius: 15px; border: 1px solid var(--gray-light);">
+                <h4>Легенда:</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: var(--primary); border-radius: 4px;"></div>
+                        <span>Квест (активный)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: var(--success); border-radius: 50%;"></div>
+                        <span>Задача (выполнена)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: var(--warning); border-radius: 50%;"></div>
+                        <span>Задача (активная)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: var(--danger); border-radius: 50%;"></div>
+                        <span>Задача (просрочена)</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2078,6 +2146,13 @@
                             const promptField = document.getElementById('ai-prompt');
                             if (promptField) promptField.focus();
                         }, 100);
+                        break;
+                    case 'quest-map':
+                        setTimeout(() => {
+                            if (!cy) {
+                                loadQuestMap();
+                            }
+                        }, 10);
                         break;
                 }
             }
@@ -2981,6 +3056,651 @@
                 showError('Ошибка сети: ' + error.message);
                 initCalendar();
             }
+        }
+
+
+        // ================================
+        // Система карты квестов (граф)
+        // ================================
+
+        let cy = null; // Экземпляр Cytoscape
+        let questMapData = []; // Данные для карты
+
+        // Инициализация Cytoscape
+        function initQuestMap() {
+            // Очищаем контейнер
+            container.innerHTML = '';
+
+            if (cy) {
+                try {
+                    cy.destroy();
+                } catch (e) {
+                    console.warn('Ошибка при уничтожении графа:', e);
+                }
+            }
+
+            // Создаем базовые элементы для примера
+            const elements = [
+                // Узлы-квесты
+                {
+                    data: {
+                        id: 'welcome',
+                        label: 'Добро пожаловать',
+                        type: 'quest',
+                        status: 'active',
+                        description: 'Начальный квест для знакомства'
+                    }
+                },
+                // Узлы-задачи
+                {
+                    data: {
+                        id: 'task1',
+                        label: 'Заполнить профиль',
+                        type: 'task',
+                        status: 'completed',
+                        questId: 'welcome'
+                    }
+                },
+                {
+                    data: {
+                        id: 'task2',
+                        label: 'Купить первый квест',
+                        type: 'task',
+                        status: 'active',
+                        questId: 'welcome'
+                    }
+                },
+                // Рёбра
+                { data: { source: 'welcome', target: 'task1' } },
+                { data: { source: 'welcome', target: 'task2' } }
+            ];
+
+            cy = cytoscape({
+                container: container,
+                elements: elements,
+
+                style: [
+                    // Стиль для квестов
+                    {
+                        selector: 'node[type="quest"]',
+                        style: {
+                            'background-color': function (ele) {
+                                const status = ele.data('status');
+                                return status === 'completed' ? '#10b981' :
+                                    status === 'active' ? '#6366f1' : '#6b7280';
+                            },
+                            'label': 'data(label)',
+                            'color': '#ffffff',
+                            'font-size': '14px',
+                            'font-weight': 'bold',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '200px',
+                            'width': 'label',
+                            'height': 'label',
+                            'padding': '15px',
+                            'border-width': 2,
+                            'border-color': function (ele) {
+                                return ele.data('status') === 'active' ? '#4f46e5' : '#374151';
+                            },
+                            'shape': 'roundrectangle',
+                            'compound-sizing-wrt-labels': 'include'
+                        }
+                    },
+
+                    // Стиль для задач
+                    {
+                        selector: 'node[type="task"]',
+                        style: {
+                            'background-color': function (ele) {
+                                const status = ele.data('status');
+                                return status === 'completed' ? '#10b981' :
+                                    status === 'active' ? '#f59e0b' :
+                                        status === 'overdue' ? '#ef4444' : '#9ca3af';
+                            },
+                            'label': 'data(label)',
+                            'color': '#ffffff',
+                            'font-size': '12px',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '150px',
+                            'width': 'label',
+                            'height': 'label',
+                            'padding': '10px',
+                            'shape': 'ellipse',
+                            'border-width': 1,
+                            'border-color': '#ffffff'
+                        }
+                    },
+
+                    // Стиль для рёбер
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 3,
+                            'line-color': '#9ca3af',
+                            'target-arrow-color': '#9ca3af',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'arrow-scale': 1.5
+                        }
+                    },
+
+                    // Стиль для выделенных элементов
+                    {
+                        selector: ':selected',
+                        style: {
+                            'border-width': 3,
+                            'border-color': '#8b5cf6',
+                            'background-color': function (ele) {
+                                const original = ele.style('background-color');
+                                return lightenColor(original, 20);
+                            }
+                        }
+                    }
+                ],
+
+                layout: {
+                    name: 'cose',
+                    idealEdgeLength: 100,
+                    nodeOverlap: 20,
+                    refresh: 20,
+                    fit: true,
+                    padding: 30,
+                    randomize: false,
+                    componentSpacing: 100,
+                    nodeRepulsion: 400000,
+                    edgeElasticity: 100,
+                    nestingFactor: 5,
+                    gravity: 80,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                },
+
+                minZoom: 0.1,
+                maxZoom: 5,
+                wheelSensitivity: 0.1
+            });
+
+            // Обработчики событий
+            cy.on('tap', 'node', function (evt) {
+                const node = evt.target;
+                showQuestMapNodeDetails(node);
+            });
+
+            cy.on('mouseover', 'node', function (evt) {
+                const node = evt.target;
+                node.style('border-color', '#8b5cf6');
+            });
+
+            cy.on('mouseout', 'node', function (evt) {
+                const node = evt.target;
+                const status = node.data('status');
+                if (node.data('type') === 'quest') {
+                    node.style('border-color', status === 'active' ? '#4f46e5' : '#374151');
+                } else {
+                    node.style('border-color', '#ffffff');
+                }
+            });
+
+            // Добавляем возможности перетаскивания
+            cy.nodes().forEach(node => {
+                node.grabbable(true);
+            });
+        }
+
+        // Загрузка данных для карты квестов
+        async function loadQuestMap() {
+            showInfo('Загрузка карты квестов...');
+
+            try {
+                // Получаем все квесты пользователя
+                const result = await apiCall('/quests/my-quests-with-details');
+
+                if (result.success && Array.isArray(result.data)) {
+                    questMapData = result.data;
+                    renderQuestMap(questMapData);
+                    showSuccess('Карта квестов загружена!');
+                } else {
+                    showError('Не удалось загрузить данные для карты');
+                    // Показываем демо-данные
+                    initQuestMap();
+                }
+            } catch (error) {
+                showError('Ошибка загрузки: ' + error.message);
+                initQuestMap(); // Показываем базовую карту
+            }
+        }
+
+        // Рендеринг карты из данных API
+        function renderQuestMap(quests) {
+            const elements = [];
+            const nodeIds = new Set();
+
+            // Проходим по всем квестам
+            quests.forEach((quest, questIndex) => {
+                const questId = `quest_${quest.id}`;
+                nodeIds.add(questId);
+
+                // Добавляем узел квеста
+                elements.push({
+                    data: {
+                        id: questId,
+                        label: quest.title || `Квест ${quest.id}`,
+                        type: 'quest',
+                        status: quest.status || 'active',
+                        description: quest.description || '',
+                        rewardXP: quest.reward_xp || 0,
+                        rewardCoins: quest.reward_coin || 0,
+                        data: quest // Сохраняем оригинальные данные
+                    }
+                });
+
+                // Добавляем задачи квеста
+                if (quest.tasks && Array.isArray(quest.tasks)) {
+                    quest.tasks.forEach((task, taskIndex) => {
+                        const taskId = `task_${quest.id}_${task.id}`;
+                        nodeIds.add(taskId);
+
+                        elements.push({
+                            data: {
+                                id: taskId,
+                                label: task.title || `Задача ${task.task_order}`,
+                                type: 'task',
+                                status: task.status || 'active',
+                                questId: questId,
+                                description: task.description || '',
+                                difficulty: task.difficulty || 1,
+                                rewardXP: task.base_xp_reward || 0,
+                                rewardCoins: task.base_coin_reward || 0,
+                                data: task // Сохраняем оригинальные данные
+                            }
+                        });
+
+                        // Добавляем ребро от квеста к задаче
+                        elements.push({
+                            data: {
+                                source: questId,
+                                target: taskId,
+                                id: `edge_${quest.id}_${task.id}`
+                            }
+                        });
+                    });
+                }
+
+                // Добавляем связи между квестами (если есть зависимости)
+                if (quest.dependencies && Array.isArray(quest.dependencies)) {
+                    quest.dependencies.forEach(depId => {
+                        const depQuestId = `quest_${depId}`;
+                        if (nodeIds.has(depQuestId)) {
+                            elements.push({
+                                data: {
+                                    source: depQuestId,
+                                    target: questId,
+                                    id: `dep_${depId}_${quest.id}`,
+                                    type: 'dependency'
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Создаем граф
+            initCytoscapeWithData(elements);
+        }
+
+        // Инициализация Cytoscape с данными
+        function initCytoscapeWithData(elements) {
+            const container = document.getElementById('cy');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (cy) {
+                try {
+                    cy.destroy();
+                } catch (e) {
+                    console.warn('Ошибка при уничтожении графа:', e);
+                }
+            }
+
+            cy = cytoscape({
+                container: container,
+                elements: elements,
+
+                style: [
+                    // Квесты
+                    {
+                        selector: 'node[type="quest"]',
+                        style: {
+                            'background-color': function (ele) {
+                                const status = ele.data('status');
+                                return status === 'completed' ? '#10b981' :
+                                    status === 'active' ? '#6366f1' :
+                                        status === 'available' ? '#3b82f6' : '#6b7280';
+                            },
+                            'label': function (ele) {
+                                const label = ele.data('label');
+                                const status = ele.data('status');
+                                const icon = status === 'completed' ? '✅ ' :
+                                    status === 'active' ? '⚡ ' :
+                                        status === 'available' ? '🆕 ' : '⏸ ';
+                                return icon + label;
+                            },
+                            'color': '#ffffff',
+                            'font-size': '14px',
+                            'font-weight': 'bold',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '250px',
+                            'width': 'label',
+                            'height': 'label',
+                            'padding': '20px',
+                            'border-width': 3,
+                            'border-color': function (ele) {
+                                return ele.data('status') === 'active' ? '#f59e0b' : '#374151';
+                            },
+                            'shape': 'roundrectangle'
+                        }
+                    },
+
+                    // Задачи
+                    {
+                        selector: 'node[type="task"]',
+                        style: {
+                            'background-color': function (ele) {
+                                const status = ele.data('status');
+                                return status === 'completed' ? '#10b981' :
+                                    status === 'active' ? '#f59e0b' :
+                                        status === 'overdue' ? '#ef4444' : '#d1d5db';
+                            },
+                            'label': function (ele) {
+                                const label = ele.data('label');
+                                const status = ele.data('status');
+                                const icon = status === 'completed' ? '✓ ' :
+                                    status === 'active' ? '▶ ' :
+                                        status === 'overdue' ? '⚠ ' : '○ ';
+                                return icon + label;
+                            },
+                            'color': function (ele) {
+                                return ele.data('status') === 'completed' ? '#ffffff' : '#1f2937';
+                            },
+                            'font-size': '12px',
+                            'font-weight': '600',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '180px',
+                            'width': 'label',
+                            'height': 'label',
+                            'padding': '12px',
+                            'shape': 'ellipse',
+                            'border-width': 2,
+                            'border-color': '#ffffff'
+                        }
+                    },
+
+                    // Обычные связи
+                    {
+                        selector: 'edge[type!="dependency"]',
+                        style: {
+                            'width': 4,
+                            'line-color': '#9ca3af',
+                            'target-arrow-color': '#9ca3af',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'arrow-scale': 1.5
+                        }
+                    },
+
+                    // Зависимости между квестами
+                    {
+                        selector: 'edge[type="dependency"]',
+                        style: {
+                            'width': 2,
+                            'line-style': 'dashed',
+                            'line-color': '#8b5cf6',
+                            'target-arrow-color': '#8b5cf6',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier'
+                        }
+                    },
+
+                    // Выделение
+                    {
+                        selector: ':selected',
+                        style: {
+                            'border-width': 4,
+                            'border-color': '#8b5cf6',
+                            'background-color': function (ele) {
+                                const original = ele.style('background-color');
+                                return lightenColor(original, 30);
+                            }
+                        }
+                    }
+                ],
+
+                layout: {
+                    name: 'cose',
+                    idealEdgeLength: 100,
+                    nodeOverlap: 20,
+                    refresh: 20,
+                    fit: true,
+                    padding: 50,
+                    randomize: true,
+                    componentSpacing: 100,
+                    nodeRepulsion: 400000,
+                    edgeElasticity: 100,
+                    nestingFactor: 5,
+                    gravity: 50,
+                    numIter: 1000
+                }
+            });
+
+            // Добавляем обработчики
+            cy.on('tap', 'node', function (evt) {
+                const node = evt.target;
+                showQuestMapNodeDetails(node);
+            });
+
+            // Включаем перетаскивание
+            cy.nodes().forEach(node => {
+                node.grabbable(true);
+            });
+        }
+
+        // Показать детали узла карты
+        function showQuestMapNodeDetails(node) {
+            const nodeData = node.data();
+            let html = '';
+
+            console.log('Node data for debugging:', nodeData);
+
+            // Функция для извлечения числового ID из строки
+            const extractNumber = (str) => {
+                if (!str) return null;
+                const match = str.match(/\d+/);
+                return match ? parseInt(match[0]) : null;
+            };
+
+            // Для квеста: quest_6 → 6
+            const questIdExtracted = extractNumber(nodeData.questId);
+
+            if (nodeData.type === 'quest') {
+                html = `
+            <div class="quest-map-details">
+                <h3>${nodeData.label}</h3>
+                <p><strong>Статус:</strong> ${getStatusText(nodeData.status)}</p>
+                <p><strong>Описание:</strong> ${nodeData.description || 'Нет описания'}</p>
+                <p><strong>Награда:</strong> ${nodeData.rewardXP || 0} XP, ${nodeData.rewardCoins || 0} 🪙</p>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="openQuestFromMap(${nodeData.data?.id})">
+                        Перейти к квесту
+                    </button>
+                    <button class="btn btn-info" onclick="zoomToNode('${nodeData.id}')">
+                        Приблизить
+                    </button>
+                </div>
+            </div>
+        `;
+            } else if (nodeData.type === 'task') {
+                html = `
+            <div class="quest-map-details">
+                <h3>${nodeData.label}</h3>
+                <p><strong>Статус:</strong> ${getStatusText(nodeData.status)}</p>
+                <p><strong>Сложность:</strong> ${'★'.repeat(nodeData.difficulty)}${'☆'.repeat(Math.max(0, 5 - nodeData.difficulty))}</p>
+                <p><strong>Описание:</strong> ${nodeData.description || 'Нет описания'}</p>
+                <p><strong>Награда:</strong> ${nodeData.rewardXP || 0} XP, ${nodeData.rewardCoins || 0} 🪙</p>
+
+                ${nodeData.status === 'active' ? `
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-success" onclick="completeTaskFromMap(${questIdExtracted}, ${nodeData.data?.id})">
+                        Отметить выполненным
+                    </button>
+                </div>
+                ` : ''}
+            </div>
+        `;
+            }
+
+            // Показываем уведомление с деталями
+            showInfo(html.replace(/<[^>]*>/g, '').substring(0, 100) + '...');
+
+            // Или создаем модальное окно
+            showModal('Детали элемента', html);
+        }
+
+        // Вспомогательные функции для карты
+        function getStatusText(status) {
+            const statusMap = {
+                'completed': '✅ Выполнено',
+                'active': '⚡ Активно',
+                'available': '🆕 Доступно',
+                'overdue': '⚠ Просрочено',
+                'locked': '🔒 Заблокировано'
+            };
+            return statusMap[status] || status;
+        }
+
+        function lightenColor(color, percent) {
+            // Упрощенная функция для осветления цвета
+            return color;
+        }
+
+        function zoomToNode(nodeId) {
+            if (cy) {
+                const node = cy.getElementById(nodeId);
+                if (node) {
+                    cy.animate({
+                        fit: {
+                            eles: node,
+                            padding: 50
+                        },
+                        duration: 500
+                    });
+                }
+            }
+        }
+
+        // Функции для смены layout
+        function applyTreeLayout() {
+            if (cy) {
+                cy.layout({
+                    name: 'breadthfirst',
+                    directed: true,
+                    padding: 50,
+                    spacingFactor: 1.5,
+                    animate: true,
+                    animationDuration: 500
+                }).run();
+            }
+        }
+
+        function applyGridLayout() {
+            if (cy) {
+                cy.layout({
+                    name: 'grid',
+                    rows: 3,
+                    padding: 50,
+                    animate: true,
+                    animationDuration: 500
+                }).run();
+            }
+        }
+
+        function applyCircleLayout() {
+            if (cy) {
+                cy.layout({
+                    name: 'circle',
+                    padding: 50,
+                    animate: true,
+                    animationDuration: 500
+                }).run();
+            }
+        }
+
+        // Открыть квест из карты
+        function openQuestFromMap(questId) {
+            if (questId) {
+                openTab('my-quests');
+                setTimeout(() => {
+                    showQuestTasks(questId, 'Квест с карты');
+                }, 100);
+            }
+        }
+
+        // Выполнить задачу из карты
+        async function completeTaskFromMap(questId, taskId) {
+            if (!questId || !taskId) return;
+
+            const result = await apiCall(`/quests/${questId}/${taskId}/complete`, {
+                method: 'POST'
+            });
+
+            if (result.success) {
+                showSuccess('Задача выполнена!');
+                // Обновляем карту
+                loadQuestMap();
+            } else {
+                showError('Ошибка: ' + result.data.error);
+            }
+        }
+
+        // Показать модальное окно
+        function showModal(title, content) {
+            const modalHTML = `
+        <div class="task-modal-overlay">
+            <div class="task-modal">
+                <div class="task-modal-header">
+                    <h3>${title}</h3>
+                    <button class="task-modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div class="task-modal-body">
+                    ${content}
+                </div>
+                <div class="task-modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+            const modalContainer = document.createElement('div');
+            modalContainer.id = 'quest-map-modal';
+            modalContainer.innerHTML = modalHTML;
+            document.body.appendChild(modalContainer);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('quest-map-modal');
+            if (modal) modal.remove();
         }
     </script>
 </body>
