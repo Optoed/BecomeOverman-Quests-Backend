@@ -1710,15 +1710,15 @@
         <!-- Друзья -->
         <div id="friends" class="tab-content">
             <h3>👥 Добавить друга</h3>
-            <input type="number" id="friend-id" placeholder="🔢 ID друга">
+            <input type="number" id="friend-name" placeholder="Имя друга">
             <button class="btn btn-primary" onclick="addFriend()">Добавить</button>
 
             <h3>👥 Мои друзья</h3>
             <div id="friends-list" style="margin-bottom: 10px;"></div>
 
             <h3>🤝 Совместный квест</h3>
-            <input type="number" id="shared-friend-id" placeholder="🔢 ID друга">
-            <input type="number" id="shared-quest-id" placeholder="🔢 ID квеста">
+            <input type="number" id="shared-friend-id" placeholder="ID друга">
+            <input type="number" id="shared-quest-id" placeholder="ID квеста">
             <button class="btn btn-success" onclick="createSharedQuest()">Начать совместный квест</button>
         </div>
 
@@ -2484,11 +2484,11 @@
 
         // Друзья
         async function addFriend() {
-            const friendId = document.getElementById('friend-id').value;
-            const result = await apiCall(`/friends/${friendId}`, { method: 'POST' });
+            const friendName = document.getElementById('friend-name').value;
+            const result = await apiCall(`/friends/by-name/${friendName}`, { method: 'POST' });
 
             if (result.success) {
-                showSuccess('Друг успешно добавлен! 👥');
+                showSuccess('Друг успешно добавлен!');
                 loadFriends();
             } else {
                 showError('Ошибка добавления друга: ' + result.data.error);
