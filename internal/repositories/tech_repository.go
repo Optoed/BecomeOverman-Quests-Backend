@@ -2,18 +2,19 @@ package repositories
 
 import (
 	"errors"
+
 	"github.com/jmoiron/sqlx"
 )
 
-type BaseRepository struct {
+type TechRepository struct {
 	db *sqlx.DB
 }
 
-func NewBaseRepository(db *sqlx.DB) *BaseRepository {
-	return &BaseRepository{db: db}
+func NewTechRepository(db *sqlx.DB) *TechRepository {
+	return &TechRepository{db: db}
 }
 
-func (r *BaseRepository) CheckConnection() error {
+func (r *TechRepository) CheckConnection() error {
 	if err := r.db.Ping(); err != nil {
 		return errors.New("failed to connect to the database")
 	}

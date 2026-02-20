@@ -242,11 +242,32 @@ func (h *QuestHandler) CreateSharedQuest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Shared quest created successfully"})
 }
 
+// Search relevant quests by title / description (поисковик - интеграция с Bert FastAPI-микросервисом)
+// без аутентификаци-авторизации
+func (h *QuestHandler) SearchQuests(c *gin.Context) {
+	var req models.RecommendationService_SearchQuest_Request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	quests, err := h.questService.SearchQuests(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, quests)
+}
+
 // RegisterQuestRoutes sets up the routes for quest handling with Gin
 func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService) {
 	handler := NewQuestHandler(questService)
 
 	questGroup := router.Group("/quests")
+
+	questGroup.POST("/search", handler.SearchQuests)
+
 	questGroup.Use(middleware.JWTAuthMiddleware())
 	{
 		questGroup.GET("/:questID/details", handler.GetQuestDetails)

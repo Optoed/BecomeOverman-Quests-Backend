@@ -3,6 +3,7 @@ package main
 import (
 	"BecomeOverMan/internal/handlers"
 	"log"
+	"log/slog"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 
@@ -18,15 +19,16 @@ import (
 )
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug) // Включаем DEBUG-логирование
+
 	db, err := sqlx.Connect("postgres", config.Cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Close()
 
-	baseRepo := repositories.NewBaseRepository(db)
-	baseService := services.NewBaseService(baseRepo)
-	baseHandler := handlers.NewBaseHandler(baseService)
+	techRepo := repositories.NewTechRepository(db)
+	techService := services.NewTechService(techRepo)
 
 	userRepo := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
@@ -44,7 +46,7 @@ func main() {
 	}))
 
 	{
-		r.GET("/ping", baseHandler.CheckConnection)
+		handlers.RegisterTechRoutes(r, techService)
 
 		handlers.RegisterUserRoutes(r, userService)
 		handlers.RegisterQuestRoutes(r, questService)

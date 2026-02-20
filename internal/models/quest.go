@@ -65,3 +65,22 @@ type UserQuests struct {
 
 	TasksDone int `json:"tasks_done"`
 }
+
+// Search (Recommendation Service API)
+type QuestWithSimilarityScore struct {
+	Quest           Quest   `json:"quest"`
+	SimilarityScore float64 `json:"similarity_score"`
+}
+type SearchQuestsResponse []QuestWithSimilarityScore
+
+func NewSearchQuestsResponse(quests []Quest, resp RecommendationService_SearchQuests_Response) SearchQuestsResponse {
+	var result SearchQuestsResponse
+	for _, q := range quests {
+		for _, r := range resp.Results {
+			if q.ID == r.ID {
+				result = append(result, QuestWithSimilarityScore{q, r.SimilarityScore})
+			}
+		}
+	}
+	return result
+}
