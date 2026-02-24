@@ -1,5 +1,6 @@
 package models
 
+// Search
 type RecommendationService_SearchQuest_Request struct {
 	Query    string `json:"query" binding:"required"`
 	TopK     int    `json:"top_k,omitempty" binding:"omitempty,numeric,min=1,max=100"`
@@ -16,4 +17,17 @@ type RecommendationService_SearchQuest_Result struct {
 
 type RecommendationService_SearchQuests_Response struct {
 	Results []RecommendationService_SearchQuest_Result `json:"results"`
+}
+
+// quest/add
+
+type RecommendationService_questToAdd struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Category    string `json:"category,omitempty"`
+}
+
+type RecommendationService_AddQuests_Request struct {
+	Quests []RecommendationService_questToAdd `json:"quests"`
 }
