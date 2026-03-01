@@ -24,3 +24,19 @@ type User struct {
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	LastActiveAt time.Time `json:"last_active_at" db:"last_active_at"`
 }
+
+type UserProfile struct {
+	ID       int    `json:"id" db:"id"`
+	Username string `json:"username" db:"username"`
+	Email    string `json:"email" db:"email"`
+
+	XpPoints    int `json:"xp_points,omitempty" db:"xp_points"`
+	CoinBalance int `json:"coin_balance,omitempty" db:"coin_balance"`
+	Level       int `json:"level,omitempty" db:"level"`
+
+	CurrentStreak int `json:"current_streak,omitempty" db:"current_streak"`
+	LongestStreak int `json:"longest_streak,omitempty" db:"longest_streak"`
+
+	CreatedAt    time.Time `json:"created_at,omitempty" db:"created_at"`
+	LastActiveAt time.Time `json:"last_active_at,omitempty" db:"last_active_at"`
+}

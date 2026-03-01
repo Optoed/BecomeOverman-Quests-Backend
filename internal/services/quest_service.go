@@ -10,14 +10,19 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 )
 
 type QuestService struct {
 	questRepo *repositories.QuestRepository
+	userRepo  *repositories.UserRepository
 }
 
-func NewQuestService(repo *repositories.QuestRepository) *QuestService {
-	return &QuestService{questRepo: repo}
+func NewQuestService(
+	questRepo *repositories.QuestRepository,
+	userRepo *repositories.UserRepository,
+) *QuestService {
+	return &QuestService{questRepo: questRepo, userRepo: userRepo}
 }
 
 // GetAvailableQuests returns quests available for the user
@@ -43,7 +48,80 @@ func (s *QuestService) GetMyAllQuestsWithDetails(ctx context.Context, userID int
 
 // PurchaseQuest handles the purchase of a quest by a user
 func (s *QuestService) PurchaseQuest(ctx context.Context, userID, questID int) error {
-	return s.questRepo.PurchaseQuest(ctx, userID, questID)
+	err := s.questRepo.PurchaseQuest(ctx, userID, questID)
+	if err != nil {
+		slog.Error("Failed to purchase quest", "error", err)
+		return err
+	}
+
+	go func() {
+		questIDS, err := s.getUserQuestIDs(userID)
+		if err != nil {
+			slog.Error("Failed to get user quest IDs", "error", err, "user_id", userID)
+			return
+		}
+
+		if len(questIDS) == 0 {
+			slog.Info("User has no quests", "user_id", userID)
+		}
+
+		req := models.RecommendationService_AddUsers_Request{
+			Users: []models.UserWithQuestIDS{
+				{
+					UserID:   userID,
+					QuestIDs: questIDS,
+				},
+			},
+		}
+
+		response, err := s.sendUserQuestToRecommendationService(req)
+		if err != nil {
+			slog.Error("Failed to send user quest to recommendation service", "error", err, "user_id", userID)
+		}
+
+		slog.Info("User quest sent to recommendation service", "user_id", userID, "response", response)
+	}()
+
+	return nil
+}
+
+func (s *QuestService) getUserQuestIDs(userID int) ([]int, error) {
+	return s.questRepo.GetUserQuestIDs(userID)
+}
+
+func (s *QuestService) sendUserQuestToRecommendationService(req models.RecommendationService_AddUsers_Request) (map[string]any, error) {
+	// 1. Создаем URL
+	url := integrations.Recommendation_Service_BASE_URL + "/users/add"
+
+	// 2. Кодируем в JSON
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Создаем io.Reader из JSON
+	body := bytes.NewBuffer(jsonData)
+
+	// 4. Делаем POST запрос
+	resp, err := http.Post(url, "application/json", body)
+	if err != nil {
+		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	// 5. Проверяем статус
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("recommendation service returned status %d", resp.StatusCode)
+	}
+
+	// 6. Читаем и парсим ответ
+	var response map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return response, nil
 }
 
 // StartQuest begins the execution of a purchased quest
@@ -128,4 +206,86 @@ func (s *QuestService) SearchQuests(
 	questsWithDetailsAndSimilarityResponse := models.NewSearchQuestsResponse(questsWithDetails, response)
 
 	return questsWithDetailsAndSimilarityResponse, nil
+}
+
+func (s *QuestService) RecommendFriends(
+	ctx context.Context,
+	req models.RecommendationService_RecommendUsers_Request,
+) ([]models.UserProfileWithSimilarityScore, error) {
+	// 1. Создаем URL
+	url := integrations.Recommendation_Service_BASE_URL + "/users/recommend"
+
+	// 2. Кодируем в JSON
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Создаем io.Reader из JSON
+	body := bytes.NewBuffer(jsonData)
+
+	// 4. Делаем POST запрос
+	resp, err := http.Post(url, "application/json", body)
+	if err != nil {
+		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	// 5. Проверяем статус
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("recommendation service returned status %d", resp.StatusCode)
+	}
+
+	// 6. Читаем и парсим ответ
+	var response models.RecommendationService_RecommendUsers_Response
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// 7. достаем ids
+	userIDs := make([]int, len(response.Results))
+	userIDsWithSimilarityScore := make(map[int]float64, len(response.Results))
+	for i, result := range response.Results {
+		userIDs[i] = result.UserID
+		userIDsWithSimilarityScore[result.UserID] = result.SimilarityScore
+	}
+
+	// 8. Достаем профили потенциальных друзей (кроме пользователей с которыми уже дружба)
+	recommendedProfiles, err := s.userRepo.GetProfiles(userIDs)
+	if err != nil {
+		slog.ErrorContext(ctx, "ошибка получения профилей из БД с указанными ids во время рекомендации друзей",
+			"error", err,
+			"ids", userIDs,
+		)
+		return nil, fmt.Errorf("В рекомендации друзей по запросу произошла внутренняя ошибка: %w", err)
+	}
+
+	// 9. Убираем оттуда пользователей с которыми уже дружба
+	friendsIDS, err := s.userRepo.GetAllAcceptedFriends(req.UserID)
+	if err != nil {
+		slog.ErrorContext(ctx, "ошибка получения друзей из БД с указанными ids во время рекомендации друзей",
+			"error", err,
+			"user_id", req.UserID,
+		)
+		return nil, fmt.Errorf("В рекомендации друзей по запросу произошла внутренняя ошибка: %w", err)
+	}
+
+	recommendedNotFriendsProfiles := make([]models.UserProfile, 0, len(recommendedProfiles))
+	for _, profile := range recommendedProfiles {
+		if !slices.Contains(friendsIDS, profile.ID) {
+			recommendedNotFriendsProfiles = append(recommendedNotFriendsProfiles, profile)
+		}
+	}
+
+	// 10. Возвращаем результат = []models.UserProfileWithSimilarityScore
+	recommendedProfilesAndSimilarityResponse := make([]models.UserProfileWithSimilarityScore, 0, len(recommendedNotFriendsProfiles))
+	for _, profile := range recommendedNotFriendsProfiles {
+		recommendedProfilesAndSimilarityResponse = append(recommendedProfilesAndSimilarityResponse, models.UserProfileWithSimilarityScore{
+			UserProfile:     profile,
+			SimilarityScore: userIDsWithSimilarityScore[profile.ID],
+		})
+	}
+
+	return recommendedProfilesAndSimilarityResponse, nil
 }
