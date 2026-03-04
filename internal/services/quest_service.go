@@ -246,9 +246,11 @@ func (s *QuestService) RecommendFriends(
 	// 7. достаем ids
 	userIDs := make([]int, len(response.Results))
 	userIDsWithSimilarityScore := make(map[int]float64, len(response.Results))
+	explanations := make(map[int]map[string]any, len(response.Results))
 	for i, result := range response.Results {
 		userIDs[i] = result.UserID
 		userIDsWithSimilarityScore[result.UserID] = result.SimilarityScore
+		explanations[result.UserID] = result.Explanation
 	}
 
 	// 8. Достаем профили потенциальных друзей (кроме пользователей с которыми уже дружба)
@@ -284,6 +286,7 @@ func (s *QuestService) RecommendFriends(
 		recommendedProfilesAndSimilarityResponse = append(recommendedProfilesAndSimilarityResponse, models.UserProfileWithSimilarityScore{
 			UserProfile:     profile,
 			SimilarityScore: userIDsWithSimilarityScore[profile.ID],
+			Explanation:     explanations[profile.ID],
 		})
 	}
 

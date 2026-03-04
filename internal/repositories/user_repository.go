@@ -42,15 +42,20 @@ func (r *UserRepository) GetProfile(userID int) (models.User, error) {
 }
 
 func (r *UserRepository) GetProfiles(userIDs []int) ([]models.UserProfile, error) {
+	if len(userIDs) == 0 {
+		return []models.UserProfile{}, nil
+	}
+
 	var usersProfiles []models.UserProfile
 	query := `
 		SELECT id, username, email, xp_points, coin_balance, level, created_at 
-		FROM users WHERE id = ALL($1)
+		FROM users WHERE id = ANY($1)
 		ORDER BY array_position($1, id)
 		`
 	err := r.db.Select(&usersProfiles, query, pq.Array(userIDs))
 	if err != nil {
 		return nil, err
 	}
+
 	return usersProfiles, nil
 }

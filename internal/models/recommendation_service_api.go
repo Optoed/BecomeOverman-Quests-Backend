@@ -51,8 +51,9 @@ type RecommendationService_RecommendUsers_Request struct {
 }
 
 type UserIDWithSimilarityScore struct {
-	UserID          int     `json:"user_id"`
-	SimilarityScore float64 `json:"similarity_score"`
+	UserID          int            `json:"user_id"`
+	SimilarityScore float64        `json:"similarity_score"`
+	Explanation     map[string]any `json:"explanation"`
 }
 
 type RecommendationService_RecommendUsers_Response struct {
@@ -62,6 +63,7 @@ type RecommendationService_RecommendUsers_Response struct {
 }
 
 type UserProfileWithSimilarityScore struct {
-	UserProfile     UserProfile `json:"user_profile"`
-	SimilarityScore float64     `json:"similarity_score"`
+	UserProfile     UserProfile    `json:"user_profile"`
+	SimilarityScore float64        `json:"similarity_score"`
+	Explanation     map[string]any `json:"explanation"`
 }
