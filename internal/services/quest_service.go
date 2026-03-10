@@ -1,6 +1,7 @@
 package services
 
 import (
+	"BecomeOverMan/internal/kafka"
 	"BecomeOverMan/internal/integrations"
 	"BecomeOverMan/internal/models"
 	"BecomeOverMan/internal/repositories"
@@ -17,13 +18,15 @@ import (
 type QuestService struct {
 	questRepo *repositories.QuestRepository
 	userRepo  *repositories.UserRepository
+	producer  *kafka.Producer
 }
 
 func NewQuestService(
 	questRepo *repositories.QuestRepository,
 	userRepo *repositories.UserRepository,
+	producer *kafka.Producer,
 ) *QuestService {
-	return &QuestService{questRepo: questRepo, userRepo: userRepo}
+	return &QuestService{questRepo: questRepo, userRepo: userRepo, producer: producer}
 }
 
 // GetAvailableQuests returns quests available for the user
@@ -53,6 +56,23 @@ func (s *QuestService) PurchaseQuest(ctx context.Context, userID, questID int) e
 	if err != nil {
 		slog.Error("Failed to purchase quest", "error", err)
 		return err
+	}
+
+	user, err := s.userRepo.GetProfile(userID)
+	if err != nil {
+		slog.Error("Failed to get user profile for kafka event", "error", err, "user_id", userID)
+	} else {
+		profile := models.UserProfile{
+			ID:          user.ID,
+			Username:    user.Username,
+			Email:       user.Email,
+			XpPoints:    user.XpPoints,
+			CoinBalance: user.CoinBalance,
+			Level:       user.Level,
+		}
+		if err := s.producer.PublishUserQuestPurchased(ctx, profile, questID); err != nil {
+			slog.Error("Failed to publish kafka event user.quest_purchased", "error", err, "user_id", userID, "quest_id", questID)
+		}
 	}
 
 	go func() {
@@ -152,7 +172,16 @@ func (s *QuestService) CreateSharedQuest(user1ID, user2ID, questID int) error {
 }
 
 func (s *QuestService) SaveQuestToDB(quest *models.Quest, tasks []models.Task) (int, error) {
-	return s.questRepo.SaveQuestToDB(quest, tasks)
+	questID, err := s.questRepo.SaveQuestToDB(quest, tasks)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := s.producer.PublishQuestCreated(context.Background(), questID, quest); err != nil {
+		slog.Error("Failed to publish kafka event quest.created", "error", err, "quest_id", questID)
+	}
+
+	return questID, nil
 }
 
 func (s *QuestService) SearchQuests(

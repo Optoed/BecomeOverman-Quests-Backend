@@ -2,6 +2,7 @@ package main
 
 import (
 	"BecomeOverMan/internal/handlers"
+	"BecomeOverMan/internal/kafka"
 	"log"
 	"log/slog"
 
@@ -34,7 +35,18 @@ func main() {
 	userService := services.NewUserService(userRepo)
 
 	questRepo := repositories.NewQuestRepository(db)
-	questService := services.NewQuestService(questRepo, userRepo)
+	kafkaProducer := kafka.NewProducerFromEnv()
+	if kafkaProducer == nil {
+		slog.Info("Kafka producer disabled: KAFKA_BROKERS is empty")
+	} else {
+		defer func() {
+			if err := kafkaProducer.Close(); err != nil {
+				slog.Error("Failed to close kafka producer", "error", err)
+			}
+		}()
+	}
+
+	questService := services.NewQuestService(questRepo, userRepo, kafkaProducer)
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
@@ -43,6 +55,20 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
+
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"service": "BecomeOverMan Quests Backend",
+			"status":  "ok",
+			"routes": []string{
+				"/health/db",
+				"/auth/register",
+				"/auth/login",
+				"/quests/shop",
+				"/users/me/quests/:questID",
+			},
+		})
+	})
 
 	handlers.RegisterTechRoutes(r, techService)
 	handlers.RegisterAuthRoutes(r, userService)
