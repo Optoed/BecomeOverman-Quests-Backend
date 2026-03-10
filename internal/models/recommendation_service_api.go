@@ -22,7 +22,7 @@ type RecommendationService_SearchQuests_Response struct {
 // quest/add
 
 type RecommendationService_questToAdd struct {
-	ID          string `json:"id"`
+	ID          int    `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Category    string `json:"category,omitempty"`
@@ -66,4 +66,22 @@ type UserProfileWithSimilarityScore struct {
 	UserProfile     UserProfile    `json:"user_profile"`
 	SimilarityScore float64        `json:"similarity_score"`
 	Explanation     map[string]any `json:"explanation"`
+}
+
+// quests/recommend
+type RecommendationService_RecommendQuests_Req struct {
+	UserQuestIDs []int  `json:"user_quest_ids"`
+	TopK         int    `json:"top_k,omitempty" binding:"omitempty,numeric,min=1,max=100"`
+	Category     string `json:"category,omitempty"`
+}
+
+type RecommendQuests_Result struct {
+	RecommendationService_questToAdd
+	SimilarityScore float64 `json:"similarity_score"`
+	Explanation     string  `json:"explanation"`
+}
+
+type RecommendationService_RecommendQuests_Resp struct {
+	Recommendations []RecommendQuests_Result `json:"recommendations"`
+	UserProfileInfo map[string]any           `json:"user_profile_info"`
 }
