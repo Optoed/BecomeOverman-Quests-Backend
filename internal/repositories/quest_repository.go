@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"BecomeOverMan/internal/models"
@@ -449,6 +450,58 @@ func (r *QuestRepository) StartQuest(ctx context.Context, userID, questID int) e
 	return tx.Commit()
 }
 
+// calculateLevel вычисляет уровень игрока на основе опыта
+// Использует квадратичную прогрессию (quadratic progression) - научно обоснованную формулу для RPG
+// Формула: level = floor(sqrt(XP / base)) + 1
+// Где base = 100 - базовое значение для балансировки прогрессии
+// Эта формула обеспечивает экспоненциальный рост требований к опыту для каждого следующего уровня
+// Примеры: 0-99 XP → Lv1, 100-399 XP → Lv2, 400-899 XP → Lv3, 900-1599 XP → Lv4, и т.д.
+func calculateLevel(xp int) int {
+	if xp < 0 {
+		xp = 0
+	}
+	
+	const baseXP = 100.0 // Базовое значение для квадратичной прогрессии
+	
+	// Квадратичная формула: level = floor(sqrt(XP / base)) + 1
+	level := int(math.Floor(math.Sqrt(float64(xp) / baseXP))) + 1
+	
+	// Минимальный уровень = 1
+	if level < 1 {
+		level = 1
+	}
+	
+	return level
+}
+
+// addXPAndCoinsWithLevelUp начисляет опыт и монеты пользователю, автоматически повышая уровень
+func (r *QuestRepository) addXPAndCoinsWithLevelUp(tx *sqlx.Tx, ctx context.Context, userID, xpAmount, coinAmount int) error {
+	// Получаем текущий опыт пользователя
+	var currentXP int
+	err := tx.GetContext(ctx, &currentXP, "SELECT xp_points FROM users WHERE id = $1", userID)
+	if err != nil {
+		return err
+	}
+
+	// Вычисляем новый опыт и уровень
+	newXP := currentXP + xpAmount
+	newLevel := calculateLevel(newXP)
+
+	// Начисляем опыт, монеты и обновляем уровень
+	_, err = tx.ExecContext(ctx, `
+		UPDATE users 
+		SET xp_points = xp_points + $1,
+			coin_balance = coin_balance + $2,
+			level = $3
+		WHERE id = $4`,
+		xpAmount, coinAmount, newLevel, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CompleteTask отмечает выполнение задачи
 func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, taskID int) error {
 	tx, err := r.db.BeginTxx(ctx, nil)
@@ -477,21 +530,38 @@ func (r *QuestRepository) CompleteTask(ctx context.Context, userID, questID, tas
 		return errors.New("quest or task not found or already completed")
 	}
 
-	// обновляем статус задачи, выдаем награду
+	// Получаем награду за задачу
+	var baseXpReward, baseCoinReward int
+	err = tx.QueryRowContext(ctx, `
+		SELECT base_xp_reward, base_coin_reward 
+		FROM tasks 
+		WHERE id = $1
+	`, taskID).Scan(&baseXpReward, &baseCoinReward)
+	if err != nil {
+		return err
+	}
+
+	// Начисляем награду пользователю сразу
+	err = r.addXPAndCoinsWithLevelUp(tx, ctx, userID, baseXpReward, baseCoinReward)
+	if err != nil {
+		return err
+	}
+
+	// обновляем статус задачи, сохраняем награду в user_tasks
 	_, err = tx.ExecContext(ctx, `
         UPDATE user_tasks ut
 		SET
 			status = 'completed',
 			completed_at = NOW(),
-			xp_gained = t.base_xp_reward, 
-			coin_gained = t.base_coin_reward
+			xp_gained = $4, 
+			coin_gained = $5
         FROM tasks t
 		WHERE ut.user_id = $1
           AND ut.quest_id = $2
           AND ut.task_id = $3
           AND ut.status = 'active'
           AND t.id = ut.task_id
-		`, userID, questID, taskID)
+		`, userID, questID, taskID, baseXpReward, baseCoinReward)
 	if err != nil {
 		return err
 	}
@@ -603,13 +673,8 @@ func (r *QuestRepository) completeQuestForUsers(tx *sqlx.Tx, ctx context.Context
 
 	// Для каждого пользователя выполняем операции
 	for _, userID := range userIDs {
-		// Начисляем награду
-		_, err = tx.ExecContext(ctx, `
-            UPDATE users 
-            SET xp_points = xp_points + $1,
-                coin_balance = coin_balance + $2
-            WHERE id = $3`,
-			rewardXP, rewardCoin, userID)
+		// Начисляем награду с автоматическим повышением уровня
+		err = r.addXPAndCoinsWithLevelUp(tx, ctx, userID, rewardXP, rewardCoin)
 		if err != nil {
 			return err
 		}
