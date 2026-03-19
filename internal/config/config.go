@@ -19,7 +19,7 @@ func NewConfig() Config {
 	if err := godotenv.Load("../../.env"); err != nil {
 		err = godotenv.Load()
 		if err != nil {
-			log.Fatal("Error loading .env file", err)
+			log.Printf("Warning: .env file not found, using environment variables only: %v", err)
 		}
 	}
 
