@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"time"
 )
 
 type QuestService struct {
@@ -102,8 +103,11 @@ func (s *QuestService) sendUserQuestToRecommendationService(req models.Recommend
 	// 3. Создаем io.Reader из JSON
 	body := bytes.NewBuffer(jsonData)
 
-	// 4. Делаем POST запрос
-	resp, err := http.Post(url, "application/json", body)
+	// 4. Делаем POST запрос с таймаутом
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Post(url, "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
 	}
@@ -168,8 +172,11 @@ func (s *QuestService) SearchQuests(
 	// 3. Создаем io.Reader из JSON
 	body := bytes.NewBuffer(jsonData)
 
-	// 4. Делаем POST запрос
-	resp, err := http.Post(url, "application/json", body)
+	// 4. Делаем POST запрос с таймаутом
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Post(url, "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
 	}
@@ -227,8 +234,11 @@ func (s *QuestService) RecommendFriends(
 	// 3. Создаем io.Reader из JSON
 	body := bytes.NewBuffer(jsonData)
 
-	// 4. Делаем POST запрос
-	resp, err := http.Post(url, "application/json", body)
+	// 4. Делаем POST запрос с таймаутом
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Post(url, "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
 	}
@@ -327,8 +337,11 @@ func (s *QuestService) recommendQuests(ctx context.Context, req models.Recommend
 	// 3. Создаем io.Reader из JSON
 	body := bytes.NewBuffer(jsonData)
 
-	// 4. Делаем POST запрос
-	resp, err := http.Post(url, "application/json", body)
+	// 4. Делаем POST запрос с таймаутом
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Post(url, "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("error making POST request to recommendation service: %v", err)
 	}

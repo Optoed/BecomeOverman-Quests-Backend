@@ -205,6 +205,7 @@ func (h *QuestHandler) CompleteQuestHandler(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	questID, err := strconv.Atoi(c.Param("questID"))
