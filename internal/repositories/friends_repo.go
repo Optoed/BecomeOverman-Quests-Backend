@@ -85,7 +85,7 @@ func (r *UserRepository) GetFriends(userID int) ([]models.Friend, error) {
 	query := `
 		SELECT 
 			f.id,
-			$1 as user_id,
+			$1::int as user_id,
 			CASE 
 				WHEN f.user_id = $1 THEN f.friend_id 
 				ELSE f.user_id 
