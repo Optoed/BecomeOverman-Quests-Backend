@@ -1,0 +1,21 @@
+erDiagram
+    quests {
+        INTEGER id PK "Первичный ключ"
+        TEXT title "Название квеста"
+        TEXT description "Описание квеста"
+        TEXT category "Категория (health, intelligence, etc.)"
+        BLOB embedding_blob "BERT эмбеддинг (384-мерный вектор)"
+        TIMESTAMP created_at "Временная метка создания"
+    }
+    
+    users {
+        INTEGER user_id PK "Первичный ключ"
+        TEXT quest_ids_json "JSON массив ID приобретенных пользователем квестов"
+        BLOB profile_blob "Семантический профиль пользователя (384-мерный вектор)"
+        TIMESTAMP updated_at "Временная метка последнего обновления"
+    }
+    
+    quests ||--o{ users : "quest_ids_json содержит quest.id"
+    
+    %% Хранит метаданные квестов и BERT эмбеддинги для семантического поиска и рекомендаций
+    %% Хранит профили пользователей, вычисленные из эмбеддингов приобретенных пользователем квестов (mean pooling)
