@@ -92,7 +92,7 @@ func (s *QuestService) getUserQuestIDs(userID int) ([]int, error) {
 
 func (s *QuestService) sendUserQuestToRecommendationService(req models.RecommendationService_AddUsers_Request) (map[string]any, error) {
 	// 1. Создаем URL
-	url := integrations.Recommendation_Service_BASE_URL + "/users/add"
+	url := integrations.Recommendation_Service_BASE_URL + "/users"
 
 	// 2. Кодируем в JSON
 	jsonData, err := json.Marshal(req)
@@ -161,7 +161,7 @@ func (s *QuestService) SearchQuests(
 	userID int,
 ) (models.SearchQuestsResponse, error) {
 	// 1. Создаем URL
-	url := integrations.Recommendation_Service_BASE_URL + "/search"
+	url := integrations.Recommendation_Service_BASE_URL + "/quests/search"
 
 	// 2. Кодируем в JSON
 	jsonData, err := json.Marshal(req)
@@ -223,7 +223,7 @@ func (s *QuestService) RecommendFriends(
 	req models.RecommendationService_RecommendUsers_Request,
 ) ([]models.UserProfileWithSimilarityScore, error) {
 	// 1. Создаем URL
-	url := integrations.Recommendation_Service_BASE_URL + "/users/recommend"
+	url := integrations.Recommendation_Service_BASE_URL + "/users/recommendations"
 
 	// 2. Кодируем в JSON
 	jsonData, err := json.Marshal(req)
@@ -326,7 +326,7 @@ func (s *QuestService) RecommendQuests(ctx context.Context, userID int) (*models
 
 func (s *QuestService) recommendQuests(ctx context.Context, req models.RecommendationService_RecommendQuests_Req) (*models.RecommendationService_RecommendQuests_Resp, error) {
 	// 1. Создаем URL
-	url := integrations.Recommendation_Service_BASE_URL + "/quests/recommend"
+	url := integrations.Recommendation_Service_BASE_URL + "/quests/recommendations"
 
 	// 2. Кодируем в JSON
 	jsonData, err := json.Marshal(req)

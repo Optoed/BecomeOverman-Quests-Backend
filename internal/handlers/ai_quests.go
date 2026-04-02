@@ -69,7 +69,7 @@ func (h *QuestHandler) GenerateAIQuest(c *gin.Context) {
 
 func (h *QuestHandler) sendQuestToRecommendationService(req models.RecommendationService_AddQuests_Request) error {
 	// 1. Создаем URL
-	url := integrations.Recommendation_Service_BASE_URL + "/quests/add"
+	url := integrations.Recommendation_Service_BASE_URL + "/quests"
 
 	// 2. Кодируем в JSON
 	jsonData, err := json.Marshal(req)

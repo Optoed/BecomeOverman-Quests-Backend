@@ -5,17 +5,14 @@ import (
 	"BecomeOverMan/internal/services"
 	"BecomeOverMan/pkg/middleware"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-// UserHandler handles user-related HTTP requests
 type UserHandler struct {
 	service *services.UserService
 }
 
-// NewUserHandler creates a new UserHandler
 func NewUserHandler(service *services.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
@@ -36,7 +33,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
@@ -48,7 +45,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	userID, err := h.service.Login(request.Username, request.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -68,49 +65,38 @@ func (h *UserHandler) Login(c *gin.Context) {
 func (h *UserHandler) AddFriend(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	friendID, err := strconv.Atoi(c.Param("friend_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid friend ID"})
+	var req models.AddFriendRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
-	if err := h.service.AddFriend(userID, friendID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if req.FriendID != nil {
+		if err := h.service.AddFriend(userID, *req.FriendID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else if req.FriendName != nil {
+		if err := h.service.AddFriendByName(userID, *req.FriendName); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "friend_id or friend_name is required"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Friend added successfully"})
-}
-
-func (h *UserHandler) AddFriendByName(c *gin.Context) {
-	userID, err := middleware.GetUserID(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	friendName := c.Param("friend_name")
-	if friendName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing friend name"})
-		return
-	}
-
-	if err := h.service.AddFriendByName(userID, friendName); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Friend added successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Friend added successfully"})
 }
 
 func (h *UserHandler) GetFriends(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -126,7 +112,7 @@ func (h *UserHandler) GetFriends(c *gin.Context) {
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -139,27 +125,29 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, profile)
 }
 
-// RegisterUserRoutes sets up the routes for user handling with Gin
+func RegisterAuthRoutes(router *gin.Engine, userService *services.UserService) {
+	handler := NewUserHandler(userService)
+
+	authGroup := router.Group("/auth")
+	{
+		authGroup.POST("/login", handler.Login)
+		authGroup.POST("/register", handler.Register)
+	}
+}
+
 func RegisterUserRoutes(router *gin.Engine, userService *services.UserService) {
 	handler := NewUserHandler(userService)
 
-	userGroup := router.Group("/user")
+	usersGroup := router.Group("/users")
+	usersGroup.Use(middleware.JWTAuthMiddleware())
 	{
-		userGroup.POST("/login", handler.Login)
-		userGroup.POST("/register", handler.Register)
-	}
-
-	userProtectedGroup := userGroup
-	userProtectedGroup.Use(middleware.JWTAuthMiddleware())
-	{
-		userProtectedGroup.GET("/profile", handler.GetProfile)
+		usersGroup.GET("/me", handler.GetProfile)
 	}
 
 	friendGroup := router.Group("/friends")
 	friendGroup.Use(middleware.JWTAuthMiddleware())
 	{
-		friendGroup.POST("/:friend_id", handler.AddFriend)
-		friendGroup.POST("/by-name/:friend_name", handler.AddFriendByName)
+		friendGroup.POST("", handler.AddFriend)
 		friendGroup.GET("", handler.GetFriends)
 	}
 }
