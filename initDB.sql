@@ -33,6 +33,7 @@ CREATE TABLE users (
     username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    version INT NOT NULL DEFAULT 1,
 
     xp_points INT DEFAULT 0,
     coin_balance INT DEFAULT 0,
