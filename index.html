@@ -2081,7 +2081,7 @@
             generateBtn.textContent = '⏳ Генерация...';
 
             try {
-                const result = await apiCall('/quests/generate', {
+                const result = await apiCall('/quests', {
                     method: 'POST',
                     body: JSON.stringify({ prompt: prompt })
                 });
@@ -2193,7 +2193,7 @@
         }
 
         async function loadProfile() {
-            const result = await apiCall('/user/profile');
+            const result = await apiCall('/users/me');
 
             if (result.success && result.data) {
                 const user = result.data;
@@ -2263,7 +2263,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            const result = await apiCall('/user/login', {
+            const result = await apiCall('/auth/login', {
                 method: 'POST',
                 body: JSON.stringify({ username, password })
             });
@@ -2284,7 +2284,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            const result = await apiCall('/user/register', {
+            const result = await apiCall('/auth/register', {
                 method: 'POST',
                 body: JSON.stringify({ username, email, password })
             });
@@ -2355,7 +2355,10 @@
         }
 
         async function purchaseQuest(questId) {
-            const result = await apiCall(`/quests/${questId}/purchase`, { method: 'POST' });
+            const result = await apiCall(`/users/me/quests/${questId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'purchased' })
+            });
             if (result.success) {
                 showSuccess('Квест успешно куплен! 🎉');
                 loadQuests();
@@ -2368,9 +2371,7 @@
             const recommendationsElement = document.getElementById('recommendations-list');
             recommendationsElement.innerHTML = '<p>Загрузка рекомендаций...</p>';
 
-            const result = await apiCall('/quests/recommend', {
-                method: 'POST'
-            });
+            const result = await apiCall('/users/me/recommendations/quests');
 
             if (result.success && result.data && result.data.recommendations && Array.isArray(result.data.recommendations)) {
                 const recommendations = result.data.recommendations;
@@ -2419,7 +2420,7 @@
                 return;
             }
 
-            const result = await apiCall(`/quests/${questId}/details`);
+            const result = await apiCall(`/quests/${questId}`);
             const detailsElement = document.getElementById('quest-details');
 
             if (result.success && result.data) {
@@ -2570,7 +2571,10 @@
         // Друзья
         async function addFriend() {
             const friendName = document.getElementById('friend-name').value;
-            const result = await apiCall(`/friends/by-name/${friendName}`, { method: 'POST' });
+            const result = await apiCall('/friends', {
+                method: 'POST',
+                body: JSON.stringify({ friend_name: friendName })
+            });
 
             if (result.success) {
                 showSuccess('Друг успешно добавлен!');
@@ -2604,9 +2608,7 @@
             const recommendationsElement = document.getElementById('friend-recommendations-list');
             recommendationsElement.innerHTML = '<p>Загрузка рекомендаций...</p>';
 
-            const result = await apiCall('/quests/recommend/friends', {
-                method: 'POST'
-            });
+            const result = await apiCall('/users/me/recommendations/friends');
 
             if (result.success && result.data && Array.isArray(result.data)) {
                 const recommendations = result.data;
@@ -2705,7 +2707,10 @@
         }
 
         async function addFriendById(friendId) {
-            const result = await apiCall(`/friends/${friendId}`, { method: 'POST' });
+            const result = await apiCall('/friends', {
+                method: 'POST',
+                body: JSON.stringify({ friend_id: friendId })
+            });
             if (result.success) {
                 showSuccess('Друг успешно добавлен!');
                 loadFriends();
@@ -2722,6 +2727,7 @@
                 method: 'POST',
                 body: JSON.stringify({ friend_id: parseInt(friendId), quest_id: parseInt(questId) })
             });
+
 
             if (result.success) {
                 showSuccess('Совместный квест успешно создан! 🤝');
@@ -2754,8 +2760,8 @@
 
         // Мои квесты
         async function loadMyQuests() {
-            const active = await apiCall('/quests/active');
-            const completed = await apiCall('/quests/completed');
+            const active = await apiCall('/users/me/quests?status=active');
+            const completed = await apiCall('/users/me/quests?status=completed');
 
             if (active.success && active.data && Array.isArray(active.data)) {
                 cachedActiveQuests = active.data;
@@ -2784,7 +2790,7 @@
         async function showQuestTasks(questId, questTitle) {
             currentActiveQuestId = questId;
 
-            const result = await apiCall(`/quests/${questId}/details`);
+            const result = await apiCall(`/quests/${questId}`);
 
             if (result.success && result.data) {
                 const quest = result.data;
@@ -2828,8 +2834,9 @@
 
         // Выполнить задачу
         async function completeTask(questId, taskId, checkbox) {
-            const result = await apiCall(`/quests/${questId}/${taskId}/complete`, {
-                method: 'POST'
+            const result = await apiCall(`/users/me/quests/${questId}/tasks/${taskId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'completed' })
             });
 
             if (result.success) {
@@ -2856,8 +2863,9 @@
                 return;
             }
 
-            const result = await apiCall(`/quests/${currentActiveQuestId}/complete`, {
-                method: 'POST'
+            const result = await apiCall(`/users/me/quests/${currentActiveQuestId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'completed' })
             });
 
             if (result.success) {
@@ -2874,7 +2882,10 @@
         async function startQuest(questId, questTitle) {
             console.log('Starting quest:', questId, questTitle);
 
-            const result = await apiCall(`/quests/${questId}/start`, { method: 'POST' });
+            const result = await apiCall(`/users/me/quests/${questId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'active' })
+            });
 
             console.log('Start quest result:', result);
 
@@ -2894,7 +2905,10 @@
 
         // Завершение квеста из списка (обновленная версия)
         async function completeQuest(questId) {
-            const result = await apiCall(`/quests/${questId}/complete`, { method: 'POST' });
+            const result = await apiCall(`/users/me/quests/${questId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'completed' })
+            });
             if (result.success) {
                 showSuccess('Квест завершен! 🏆');
                 loadMyQuests();
@@ -3135,8 +3149,9 @@
         // Функция выполнения задачи из календаря
         async function completeTaskFromCalendar(questId, taskId) {
             try {
-                const result = await apiCall(`/quests/${questId}/${taskId}/complete`, {
-                    method: 'POST'
+                const result = await apiCall(`/users/me/quests/${questId}/tasks/${taskId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: 'completed' })
                 });
 
                 if (result.success) {
@@ -3157,7 +3172,7 @@
             try {
                 showInfo('Загрузка расписания...');
 
-                const result = await apiCall('/quests/my-quests-with-details');
+                const result = await apiCall('/users/me/quests');
 
                 // console.log('loadCalendarData result:', result);
 
@@ -3254,7 +3269,7 @@
             showInfo('Генерируем расписание...');
 
             try {
-                const result = await apiCall('/quests/schedule', {
+                const result = await apiCall('/schedules', {
                     method: 'POST',
                     body: JSON.stringify({
                         prompt: 'Сгенерируй оптимальное расписание'
@@ -3478,7 +3493,7 @@
 
             try {
                 // Получаем все квесты пользователя
-                const result = await apiCall('/quests/my-quests-with-details');
+                const result = await apiCall('/users/me/quests');
 
                 if (result.success && Array.isArray(result.data)) {
                     questMapData = result.data;
@@ -3879,8 +3894,9 @@
         async function completeTaskFromMap(questId, taskId) {
             if (!questId || !taskId) return;
 
-            const result = await apiCall(`/quests/${questId}/${taskId}/complete`, {
-                method: 'POST'
+            const result = await apiCall(`/users/me/quests/${questId}/tasks/${taskId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'completed' })
             });
 
             if (result.success) {

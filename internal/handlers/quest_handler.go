@@ -18,9 +18,10 @@ func NewQuestHandler(questService *services.QuestService) *QuestHandler {
 	return &QuestHandler{questService: questService}
 }
 
-// ==== Handlers ====
+type UpdateStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=purchased active completed"`
+}
 
-// GetQuestDetails возвращает детали квеста с задачами
 func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
 	questIDStr := c.Param("questID")
 	questID, err := strconv.Atoi(questIDStr)
@@ -31,7 +32,7 @@ func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
 
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -44,16 +45,26 @@ func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, questDetails)
 }
 
-// ------------ GetMyAllQuestsWithDetails ---------------
-
-func (h *QuestHandler) GetMyAllQuestsWithDetails(c *gin.Context) {
+// GetUserQuests returns user's quests, optionally filtered by ?status=active|completed
+func (h *QuestHandler) GetUserQuests(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	quests, err := h.questService.GetMyAllQuestsWithDetails(c.Request.Context(), userID)
+	status := c.Query("status")
+
+	var quests []models.Quest
+	switch status {
+	case "active":
+		quests, err = h.questService.GetMyActiveQuests(c.Request.Context(), userID)
+	case "completed":
+		quests, err = h.questService.GetMyCompletedQuests(c.Request.Context(), userID)
+	default:
+		quests, err = h.questService.GetMyAllQuestsWithDetails(c.Request.Context(), userID)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -62,12 +73,10 @@ func (h *QuestHandler) GetMyAllQuestsWithDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, quests)
 }
 
-// ------------ GetAvailableQuestsHandler ---------
-
 func (h *QuestHandler) GetAvailableQuestsHandler(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -80,14 +89,10 @@ func (h *QuestHandler) GetAvailableQuestsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, quests)
 }
 
-// <--------------------------------------------->
-// ------------ GetQuestShopHandler --------------
-// <--------------------------------------------->
-
 func (h *QuestHandler) GetQuestShopHandler(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -100,42 +105,11 @@ func (h *QuestHandler) GetQuestShopHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, quests)
 }
 
-func (h *QuestHandler) GetMyActiveQuestsHandler(c *gin.Context) {
+// UpdateQuestStatus handles PATCH /users/me/quests/:questID — purchase, start, or complete a quest
+func (h *QuestHandler) UpdateQuestStatus(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	quests, err := h.questService.GetMyActiveQuests(c.Request.Context(), userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, quests)
-}
-
-func (h *QuestHandler) GetMyCompletedQuests(c *gin.Context) {
-	userID, err := middleware.GetUserID(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	quests, err := h.questService.GetMyCompletedQuests(c.Request.Context(), userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, quests)
-}
-
-func (h *QuestHandler) PurchaseQuestHandler(c *gin.Context) {
-	userID, err := middleware.GetUserID(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -145,39 +119,34 @@ func (h *QuestHandler) PurchaseQuestHandler(c *gin.Context) {
 		return
 	}
 
-	if err := h.questService.PurchaseQuest(c.Request.Context(), userID, questID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var req UpdateStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: status must be one of: purchased, active, completed"})
 		return
 	}
 
-	c.Status(http.StatusOK)
+	switch req.Status {
+	case "purchased":
+		err = h.questService.PurchaseQuest(c.Request.Context(), userID, questID)
+	case "active":
+		err = h.questService.StartQuest(c.Request.Context(), userID, questID)
+	case "completed":
+		err = h.questService.CompleteQuest(c.Request.Context(), userID, questID)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"quest_id": questID, "status": req.Status})
 }
 
-func (h *QuestHandler) StartQuestHandler(c *gin.Context) {
+// UpdateTaskStatus handles PATCH /users/me/quests/:questID/tasks/:taskID — complete a task
+func (h *QuestHandler) UpdateTaskStatus(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	questID, err := strconv.Atoi(c.Param("questID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quest ID"})
-		return
-	}
-
-	if err := h.questService.StartQuest(c.Request.Context(), userID, questID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.Status(http.StatusOK)
-}
-
-func (h *QuestHandler) CompleteTaskHandler(c *gin.Context) {
-	userID, err := middleware.GetUserID(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -193,39 +162,29 @@ func (h *QuestHandler) CompleteTaskHandler(c *gin.Context) {
 		return
 	}
 
+	var req UpdateStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	if req.Status != "completed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status for task. Allowed: completed"})
+		return
+	}
+
 	if err := h.questService.CompleteTask(c.Request.Context(), userID, questID, taskID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.Status(http.StatusOK)
-}
-
-func (h *QuestHandler) CompleteQuestHandler(c *gin.Context) {
-	userID, err := middleware.GetUserID(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	questID, err := strconv.Atoi(c.Param("questID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quest ID"})
-		return
-	}
-
-	if err := h.questService.CompleteQuest(c.Request.Context(), userID, questID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, gin.H{"quest_id": questID, "task_id": taskID, "status": req.Status})
 }
 
 func (h *QuestHandler) CreateSharedQuest(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -240,22 +199,34 @@ func (h *QuestHandler) CreateSharedQuest(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Shared quest created successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Shared quest created successfully"})
 }
 
-// Search relevant quests by title / description (поисковик - интеграция с Bert FastAPI-микросервисом)
-// без аутентификаци-авторизации
+// SearchQuests handles GET /quests/search?q=...&top_k=...&category=...&status=...
 func (h *QuestHandler) SearchQuests(c *gin.Context) {
-	var req models.RecommendationService_SearchQuest_Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Query parameter 'q' is required"})
 		return
 	}
-	req.Status = req.GetStatus() // default == "all"
+
+	topK := 5
+	if topKStr := c.Query("top_k"); topKStr != "" {
+		if val, err := strconv.Atoi(topKStr); err == nil && val > 0 && val <= 100 {
+			topK = val
+		}
+	}
+
+	req := models.RecommendationService_SearchQuest_Request{
+		Query:    query,
+		TopK:     topK,
+		Category: c.Query("category"),
+		Status:   c.DefaultQuery("status", "all"),
+	}
 
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -268,11 +239,10 @@ func (h *QuestHandler) SearchQuests(c *gin.Context) {
 	c.JSON(http.StatusOK, quests)
 }
 
-// Рекомендация друзей с помощью Recommendation Service
 func (h *QuestHandler) RecommendFriends(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -289,11 +259,10 @@ func (h *QuestHandler) RecommendFriends(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// Рекомендация квестов с помощью Recommendation Service
 func (h *QuestHandler) RecommendQuests(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -306,33 +275,34 @@ func (h *QuestHandler) RecommendQuests(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// RegisterQuestRoutes sets up the routes for quest handling with Gin
 func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService) {
 	handler := NewQuestHandler(questService)
 
 	questGroup := router.Group("/quests")
-
 	questGroup.Use(middleware.JWTAuthMiddleware())
 	{
-		questGroup.GET("/:questID/details", handler.GetQuestDetails)
-		questGroup.GET("/my-quests-with-details", handler.GetMyAllQuestsWithDetails)
 		questGroup.GET("/available", handler.GetAvailableQuestsHandler)
 		questGroup.GET("/shop", handler.GetQuestShopHandler)
-		questGroup.GET("/active", handler.GetMyActiveQuestsHandler)
-		questGroup.GET("/completed", handler.GetMyCompletedQuests)
-		questGroup.POST("/:questID/purchase", handler.PurchaseQuestHandler)
-		questGroup.POST("/:questID/start", handler.StartQuestHandler)
-		questGroup.POST("/:questID/complete", handler.CompleteQuestHandler)
-		questGroup.POST("/:questID/:taskID/complete", handler.CompleteTaskHandler)
+		questGroup.GET("/search", handler.SearchQuests)
+		questGroup.GET("/:questID", handler.GetQuestDetails)
 
+		questGroup.POST("", handler.GenerateAIQuest)
 		questGroup.POST("/shared", handler.CreateSharedQuest)
+	}
 
-		questGroup.POST("/generate", handler.GenerateAIQuest)
-		questGroup.POST("/schedule", handler.GenerateScheduleByAI)
+	userQuestsGroup := router.Group("/users/me")
+	userQuestsGroup.Use(middleware.JWTAuthMiddleware())
+	{
+		userQuestsGroup.GET("/quests", handler.GetUserQuests)
+		userQuestsGroup.PATCH("/quests/:questID", handler.UpdateQuestStatus)
+		userQuestsGroup.PATCH("/quests/:questID/tasks/:taskID", handler.UpdateTaskStatus)
+		userQuestsGroup.GET("/recommendations/quests", handler.RecommendQuests)
+		userQuestsGroup.GET("/recommendations/friends", handler.RecommendFriends)
+	}
 
-		// recommendation service
-		questGroup.POST("/search", handler.SearchQuests)
-		questGroup.POST("/recommend/friends", handler.RecommendFriends)
-		questGroup.POST("/recommend", handler.RecommendQuests)
+	scheduleGroup := router.Group("/schedules")
+	scheduleGroup.Use(middleware.JWTAuthMiddleware())
+	{
+		scheduleGroup.POST("", handler.GenerateScheduleByAI)
 	}
 }

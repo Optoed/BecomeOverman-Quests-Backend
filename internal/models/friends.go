@@ -24,3 +24,8 @@ type CreateSharedQuestRequest struct {
 	FriendID int `json:"friend_id" binding:"required"`
 	QuestID  int `json:"quest_id" binding:"required"`
 }
+
+type AddFriendRequest struct {
+	FriendID   *int    `json:"friend_id"`
+	FriendName *string `json:"friend_name"`
+}

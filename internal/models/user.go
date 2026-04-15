@@ -6,7 +6,7 @@ type User struct {
 	ID           int    `json:"id" db:"id"`
 	Username     string `json:"username" db:"username"`
 	Email        string `json:"email" db:"email"`
-	PasswordHash string `json:"password_hash" db:"password_hash"`
+	PasswordHash string `json:"-" db:"password_hash"`
 
 	XpPoints    int `json:"xp_points" db:"xp_points"`
 	CoinBalance int `json:"coin_balance" db:"coin_balance"`

@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelDebug) // Включаем DEBUG-логирование
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	db, err := sqlx.Connect("postgres", config.Cfg.DatabaseURL)
 	if err != nil {
@@ -37,20 +37,17 @@ func main() {
 	questService := services.NewQuestService(questRepo, userRepo)
 
 	r := gin.Default()
-	// Настройка CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
 
-	{
-		handlers.RegisterTechRoutes(r, techService)
-
-		handlers.RegisterUserRoutes(r, userService)
-		handlers.RegisterQuestRoutes(r, questService)
-	}
+	handlers.RegisterTechRoutes(r, techService)
+	handlers.RegisterAuthRoutes(r, userService)
+	handlers.RegisterUserRoutes(r, userService)
+	handlers.RegisterQuestRoutes(r, questService)
 
 	if err := r.Run("0.0.0.0:8080"); err != nil {
 		log.Fatal("Failed to start server:", err)

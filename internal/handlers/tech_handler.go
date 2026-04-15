@@ -24,7 +24,7 @@ func (h *TechHandler) CheckConnectionDB(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "database is available"})
+	c.JSON(http.StatusOK, gin.H{"status": "healthy", "service": "database"})
 }
 
 func (h *TechHandler) RecommendationServiceHealth(c *gin.Context) {
@@ -49,7 +49,6 @@ func (h *TechHandler) RecommendationServiceHealth(c *gin.Context) {
 
 	slog.Debug("Response body", "body", string(body))
 
-	// Парсим JSON ответ
 	var result map[string]interface{}
 	if err := json.Unmarshal(body, &result); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -62,10 +61,9 @@ func (h *TechHandler) RecommendationServiceHealth(c *gin.Context) {
 func RegisterTechRoutes(router *gin.Engine, techService *services.TechService) {
 	handler := NewTechHandler(techService)
 
-	g := router.Group("/tech")
+	g := router.Group("/health")
 	{
-		g.GET("/ping-db", handler.CheckConnectionDB)
-
-		g.GET("/recommendation-service/health", handler.RecommendationServiceHealth)
+		g.GET("/db", handler.CheckConnectionDB)
+		g.GET("/recommendation-service", handler.RecommendationServiceHealth)
 	}
 }
