@@ -7,6 +7,7 @@ type User struct {
 	Username     string `json:"username" db:"username"`
 	Email        string `json:"email" db:"email"`
 	PasswordHash string `json:"-" db:"password_hash"`
+	Version      int    `json:"version" db:"version"`
 
 	XpPoints    int `json:"xp_points" db:"xp_points"`
 	CoinBalance int `json:"coin_balance" db:"coin_balance"`
@@ -29,6 +30,7 @@ type UserProfile struct {
 	ID       int    `json:"id" db:"id"`
 	Username string `json:"username" db:"username"`
 	Email    string `json:"email" db:"email"`
+	Version  int    `json:"version,omitempty" db:"version"`
 
 	XpPoints    int `json:"xp_points,omitempty" db:"xp_points"`
 	CoinBalance int `json:"coin_balance,omitempty" db:"coin_balance"`
@@ -39,4 +41,16 @@ type UserProfile struct {
 
 	CreatedAt    time.Time `json:"created_at,omitempty" db:"created_at"`
 	LastActiveAt time.Time `json:"last_active_at,omitempty" db:"last_active_at"`
+}
+
+type CreateUserRequest struct {
+	Username string `json:"username" binding:"required,min=3,max=32"`
+	Password string `json:"password" binding:"required,min=3,max=128"`
+	Email    string `json:"email" binding:"required,email"`
+}
+
+type UpdateUserRequest struct {
+	Username *string `json:"username,omitempty" binding:"omitempty,min=3,max=32"`
+	Email    *string `json:"email,omitempty" binding:"omitempty,email"`
+	Version  int     `json:"version" binding:"required,min=1"`
 }

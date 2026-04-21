@@ -3,6 +3,7 @@ package services
 import (
 	"BecomeOverMan/internal/models"
 	"BecomeOverMan/internal/repositories"
+	"database/sql"
 	"errors"
 	"log"
 
@@ -12,6 +13,8 @@ import (
 type UserService struct {
 	repo *repositories.UserRepository
 }
+
+var ErrUserVersionConflict = errors.New("user version conflict")
 
 func NewUserService(repo *repositories.UserRepository) *UserService {
 	return &UserService{repo: repo}
@@ -24,6 +27,14 @@ func (s *UserService) Register(username, email, password string) error {
 	}
 	hashedPassword := string(hashedPasswordBytes)
 	return s.repo.CreateUser(username, email, hashedPassword)
+}
+
+func (s *UserService) CreateUser(req models.CreateUserRequest) (models.UserProfile, error) {
+	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.UserProfile{}, err
+	}
+	return s.repo.CreateUserWithProfile(req.Username, req.Email, string(hashedPasswordBytes))
 }
 
 func (s *UserService) Login(username, password string) (int, error) {
@@ -65,4 +76,31 @@ func (s *UserService) GetFriends(userID int) ([]models.Friend, error) {
 
 func (s *UserService) GetProfile(userID int) (models.User, error) {
 	return s.repo.GetProfile(userID)
+}
+
+func (s *UserService) GetUserByID(userID int) (models.UserProfile, error) {
+	return s.repo.GetUserByID(userID)
+}
+
+func (s *UserService) ListUsers(limit, offset int) ([]models.UserProfile, error) {
+	return s.repo.ListUsers(limit, offset)
+}
+
+func (s *UserService) UpdateUser(userID int, req models.UpdateUserRequest) (models.UserProfile, error) {
+	updated, err := s.repo.UpdateUser(userID, req)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			_, existsErr := s.repo.GetUserByID(userID)
+			if existsErr != nil {
+				return models.UserProfile{}, existsErr
+			}
+			return models.UserProfile{}, ErrUserVersionConflict
+		}
+		return models.UserProfile{}, err
+	}
+	return updated, nil
+}
+
+func (s *UserService) DeleteUser(userID int) (bool, error) {
+	return s.repo.DeleteUser(userID)
 }

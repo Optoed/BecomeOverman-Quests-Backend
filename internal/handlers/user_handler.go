@@ -4,7 +4,9 @@ import (
 	"BecomeOverMan/internal/models"
 	"BecomeOverMan/internal/services"
 	"BecomeOverMan/pkg/middleware"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -125,6 +127,110 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, profile)
 }
 
+func (h *UserHandler) CreateUser(c *gin.Context) {
+	var req models.CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	user, err := h.service.CreateUser(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, user)
+}
+
+func (h *UserHandler) GetUserByID(c *gin.Context) {
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	user, err := h.service.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func (h *UserHandler) ListUsers(c *gin.Context) {
+	limit := 50
+	offset := 0
+
+	if q := c.Query("limit"); q != "" {
+		parsed, err := strconv.Atoi(q)
+		if err != nil || parsed <= 0 || parsed > 200 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
+			return
+		}
+		limit = parsed
+	}
+
+	if q := c.Query("offset"); q != "" {
+		parsed, err := strconv.Atoi(q)
+		if err != nil || parsed < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid offset"})
+			return
+		}
+		offset = parsed
+	}
+
+	users, err := h.service.ListUsers(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var req models.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	user, err := h.service.UpdateUser(userID, req)
+	if err != nil {
+		if errors.Is(err, services.ErrUserVersionConflict) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Version conflict. Reload entity and retry"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func (h *UserHandler) DeleteUser(c *gin.Context) {
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	deleted, err := h.service.DeleteUser(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if !deleted {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 func RegisterAuthRoutes(router *gin.Engine, userService *services.UserService) {
 	handler := NewUserHandler(userService)
 
@@ -141,7 +247,12 @@ func RegisterUserRoutes(router *gin.Engine, userService *services.UserService) {
 	usersGroup := router.Group("/users")
 	usersGroup.Use(middleware.JWTAuthMiddleware())
 	{
+		usersGroup.POST("", handler.CreateUser)
+		usersGroup.GET("", handler.ListUsers)
 		usersGroup.GET("/me", handler.GetProfile)
+		usersGroup.GET("/:id", handler.GetUserByID)
+		usersGroup.PATCH("/:id", handler.UpdateUser)
+		usersGroup.DELETE("/:id", handler.DeleteUser)
 	}
 
 	friendGroup := router.Group("/friends")
