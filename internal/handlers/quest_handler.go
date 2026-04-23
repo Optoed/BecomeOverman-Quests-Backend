@@ -22,6 +22,11 @@ type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required,oneof=purchased active completed"`
 }
 
+type CreateQuestDevRequest struct {
+	Quest models.Quest  `json:"quest" binding:"required"`
+	Tasks []models.Task `json:"tasks" binding:"required,min=1"`
+}
+
 func (h *QuestHandler) GetQuestDetails(c *gin.Context) {
 	questIDStr := c.Param("questID")
 	questID, err := strconv.Atoi(questIDStr)
@@ -202,6 +207,26 @@ func (h *QuestHandler) CreateSharedQuest(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Shared quest created successfully"})
 }
 
+// CreateQuestDev creates quest directly without AI call (useful for local Kafka e2e testing).
+func (h *QuestHandler) CreateQuestDev(c *gin.Context) {
+	var req CreateQuestDevRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	questID, err := h.questService.SaveQuestToDB(&req.Quest, req.Tasks)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message":  "Quest created (dev)",
+		"quest_id": questID,
+	})
+}
+
 // SearchQuests handles GET /quests/search?q=...&top_k=...&category=...&status=...
 func (h *QuestHandler) SearchQuests(c *gin.Context) {
 	query := c.Query("q")
@@ -287,6 +312,7 @@ func RegisterQuestRoutes(router *gin.Engine, questService *services.QuestService
 		questGroup.GET("/:questID", handler.GetQuestDetails)
 
 		questGroup.POST("", handler.GenerateAIQuest)
+		questGroup.POST("/dev-create", handler.CreateQuestDev)
 		questGroup.POST("/shared", handler.CreateSharedQuest)
 	}
 
